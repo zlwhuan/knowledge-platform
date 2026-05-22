@@ -1,0 +1,1427 @@
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#eef2f6;font-family:Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#1f2937}.preview-page{padding:24px;line-height:1.75}.preview-page pre{white-space:pre-wrap;background:#fff;border:1px solid #d8e0ea;border-radius:16px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.05)}.preview-page h2{margin:0 0 14px}.sheet-wrap{overflow:auto;background:#fff;border:1px solid #d8e0ea;border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.05)}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #e7edf4;padding:10px 12px;text-align:left;vertical-align:top}.slide-card{background:#fff;border:1px solid #d8e0ea;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 10px 24px rgba(15,23,42,.05)}ul{margin:0;padding-left:20px}</style></head><body><main class="preview-page"><pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;泽进科技 · 手术麻醉信息系统产品优势说明&lt;/title&gt;
+&lt;style&gt;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&amp;family=Noto+Serif+SC:wght@600;700&amp;display=swap');
+
+:root {
+  --navy: #0B1D3A;
+  --navy-mid: #132E5B;
+  --blue: #1A73E8;
+  --blue-light: #4A9EFF;
+  --teal: #00B4D8;
+  --teal-soft: #E8F8FC;
+  --green: #00B074;
+  --green-soft: #E6F7F0;
+  --gold: #E8A838;
+  --gold-soft: #FFF8EC;
+  --red: #E84D4D;
+  --red-soft: #FDECEC;
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-500: #64748B;
+  --gray-700: #334155;
+  --gray-900: #0F172A;
+  --white: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,0.10);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  color: var(--gray-700);
+  line-height: 1.8;
+  font-size: 14.5px;
+  background: var(--white);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ===== PRINT ===== */
+@media print {
+  @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+  body { font-size: 11pt; line-height: 1.7; }
+  .cover { page-break-after: always; }
+  .toc-page { page-break-after: always; }
+  /* 只对小卡片避免跨页断裂 */
+  .card, .dev-card, .stat-card, .case { page-break-inside: avoid; }
+  .ai-step { page-break-inside: avoid; }
+  /* 表格头尾不落单 */
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  /* 分节标题不要孤行 */
+  .sec-head { page-break-after: avoid; }
+  .sub-head { page-break-after: avoid; }
+  .callout { page-break-inside: avoid; }
+  .no-print { display: none !important; }
+  .hero-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.page-break { }
+.no-break { }
+
+/* ===== COVER ===== */
+.cover {
+  min-height: 100vh;
+  background: var(--navy);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 60px;
+}
+.cover-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.cover-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(26,115,232,0.15) 0%, transparent 70%);
+  top: 10%; right: -10%;
+}
+.cover-glow2 {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,180,216,0.1) 0%, transparent 70%);
+  bottom: 5%; left: -5%;
+}
+.cover-inner { position: relative; z-index: 2; max-width: 700px; }
+.cover-tag {
+  display: inline-block;
+  padding: 6px 18px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+.cover h1 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.3;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+.cover h1 span { color: var(--blue-light); }
+.cover-sub {
+  font-size: 20px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 300;
+  margin-bottom: 50px;
+  letter-spacing: 6px;
+}
+.cover-divider {
+  width: 60px; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--teal));
+  border-radius: 2px;
+  margin-bottom: 40px;
+}
+.cover-info {
+  display: flex; gap: 40px;
+  color: rgba(255,255,255,0.45);
+  font-size: 13px;
+  line-height: 2;
+}
+.cover-info strong { color: rgba(255,255,255,0.7); font-weight: 500; }
+.cover-footer {
+  position: absolute;
+  bottom: 40px; left: 60px; right: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(255,255,255,0.25);
+  font-size: 12px;
+  z-index: 2;
+}
+.cover-badge {
+  padding: 5px 16px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+/* ===== CONTAINER ===== */
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 36px; }
+
+/* ===== TOC ===== */
+.toc-page { padding: 60px 0; }
+.toc-page h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 26px;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.toc-sub { color: var(--gray-500); font-size: 13px; margin-bottom: 35px; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.toc-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-200);
+  transition: all 0.2s;
+}
+.toc-item:hover { border-color: var(--blue); background: #f0f6ff; }
+.toc-num {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.toc-num.blue { background: var(--blue); }
+.toc-num.teal { background: var(--teal); }
+.toc-num.green { background: var(--green); }
+.toc-num.gold { background: var(--gold); }
+.toc-label { font-size: 14px; font-weight: 500; color: var(--gray-900); }
+
+/* ===== SECTION HEADERS ===== */
+.sec-head {
+  display: flex; align-items: center; gap: 16px;
+  margin: 55px 0 30px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--gray-200);
+}
+.sec-head .num {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  color: var(--white);
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.sec-head h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+}
+.sec-head .en {
+  font-size: 13px;
+  color: var(--gray-500);
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.sub-head {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 28px 0 14px;
+  padding-left: 14px;
+  border-left: 4px solid var(--blue);
+}
+
+.sub4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 18px 0 10px;
+}
+
+p { margin-bottom: 10px; text-align: justify; }
+
+/* ===== HERO BANNERS ===== */
+.hero-banner {
+  border-radius: var(--radius);
+  padding: 36px 40px;
+  margin: 20px 0 30px;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+.hero-banner.navy { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); }
+.hero-banner.blue { background: linear-gradient(135deg, #1a4fb8 0%, var(--blue) 100%); }
+.hero-banner.teal { background: linear-gradient(135deg, #0a7e8c 0%, var(--teal) 100%); }
+.hero-banner.green { background: linear-gradient(135deg, #007a54 0%, var(--green) 100%); }
+.hero-banner h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+.hero-banner p { color: rgba(255,255,255,0.85); font-size: 14px; }
+.hero-banner .banner-icon {
+  position: absolute;
+  right: 30px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 80px;
+  opacity: 0.15;
+}
+
+/* ===== STATS ===== */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 24px 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.stat-card .val {
+  font-size: 36px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--navy), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+.stat-card .label {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 6px;
+}
+
+/* ===== CARDS ===== */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+.card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.card-icon.navy { background: #E8EEF6; }
+.card-icon.blue { background: #E3F0FF; }
+.card-icon.teal { background: var(--teal-soft); }
+.card-icon.green { background: var(--green-soft); }
+.card-icon.gold { background: var(--gold-soft); }
+.card-icon.red { background: var(--red-soft); }
+.card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 8px;
+}
+.card p, .card li {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.7;
+}
+.card ul { margin: 6px 0 0 16px; }
+.card li { margin-bottom: 3px; }
+
+/* ===== TABLES ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 20px;
+  font-size: 13.5px;
+}
+thead th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 11px 16px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 13px;
+}
+thead th:first-child { border-radius: 8px 0 0 0; }
+thead th:last-child { border-radius: 0 8px 0 0; }
+tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+tbody tr:nth-child(even) { background: var(--gray-50); }
+
+/* ===== CALLOUT ===== */
+.callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  margin: 14px 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.callout .icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.callout.blue { background: #EFF6FF; border-left: 4px solid var(--blue); }
+.callout.green { background: var(--green-soft); border-left: 4px solid var(--green); }
+.callout.gold { background: var(--gold-soft); border-left: 4px solid var(--gold); }
+.callout.red { background: var(--red-soft); border-left: 4px solid var(--red); }
+.callout strong { color: var(--gray-900); }
+
+/* ===== TAG ===== */
+.tag {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 500;
+  margin: 2px 3px;
+}
+.tag-blue { background: #E3F0FF; color: #1a5fca; }
+.tag-teal { background: var(--teal-soft); color: #087d94; }
+.tag-green { background: var(--green-soft); color: #007a54; }
+.tag-gold { background: var(--gold-soft); color: #b8841e; }
+.tag-navy { background: #E8EEF6; color: var(--navy); }
+
+/* ===== COMPARISON TABLE ===== */
+.cmp-table thead th:nth-child(2) { background: var(--green); }
+.cmp-table thead th:nth-child(3) { background: var(--gray-500); }
+.cmp-table tbody td:nth-child(2) { font-weight: 500; color: var(--navy); }
+
+/* ===== CASE CARD ===== */
+.case {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 24px 24px 20px 28px;
+  margin: 14px 0;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.case::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 5px; height: 100%;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.case.t1::before { background: linear-gradient(180deg, var(--blue), var(--teal)); }
+.case.t2::before { background: linear-gradient(180deg, var(--gold), #f0a030); }
+.case.t3::before { background: linear-gradient(180deg, var(--green), #00d4a0); }
+.case h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+.case ul { margin: 0 0 0 18px; font-size: 13.5px; }
+.case li { margin-bottom: 4px; }
+.case .tags { margin-top: 12px; }
+
+/* ===== AI FLOW ===== */
+.ai-flow {
+  display: flex;
+  gap: 12px;
+  margin: 18px 0;
+  position: relative;
+}
+.ai-flow::before {
+  content: '';
+  position: absolute;
+  top: 34px; left: 40px; right: 40px;
+  height: 2px;
+  background: var(--gray-200);
+  z-index: 0;
+}
+.ai-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  background: var(--white);
+  padding: 0 8px;
+}
+.ai-step .dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  box-shadow: 0 0 0 4px #E3F0FF;
+}
+.ai-step h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+.ai-step p { font-size: 11.5px; color: var(--gray-500); line-height: 1.5; }
+
+/* ===== TIMELINE ===== */
+.timeline { margin: 20px 0; position: relative; padding-left: 24px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--gray-200);
+}
+.tl-item { margin-bottom: 18px; position: relative; }
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: -22px; top: 8px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--blue);
+  border: 2px solid var(--white);
+  box-shadow: 0 0 0 3px #E3F0FF;
+}
+.tl-item .tl-year {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 2px;
+}
+.tl-item .tl-text { font-size: 13.5px; }
+
+/* ===== FEATURE TABLE WITH ICON ===== */
+.ftable { margin: 16px 0; }
+.ftable-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--gray-200);
+  gap: 16px;
+}
+.ftable-row:last-child { border-bottom: none; }
+.ftable-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: #E3F0FF;
+}
+.ftable-content { flex: 1; }
+.ftable-content h5 { font-size: 14px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+.ftable-content p { font-size: 13px; color: var(--gray-500); margin: 0; }
+
+/* ===== MDI DEVICE GRID ===== */
+.dev-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 18px 0;
+}
+.dev-card {
+  text-align: center;
+  padding: 20px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+  background: var(--white);
+}
+.dev-card .emoji { font-size: 28px; margin-bottom: 8px; }
+.dev-card h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+.dev-card p { font-size: 11.5px; color: var(--gray-500); margin: 0; }
+
+/* ===== MODULE LIST ===== */
+.mod-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--gray-200);
+  font-size: 13.5px;
+}
+.mod-row:last-child { border-bottom: none; }
+.mod-label {
+  flex-shrink: 0;
+  width: 90px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+/* ===== FOOTER ===== */
+.doc-footer {
+  margin-top: 60px;
+  padding: 24px 0;
+  border-top: 2px solid var(--gray-200);
+  text-align: center;
+  font-size: 12px;
+  color: var(--gray-500);
+  line-height: 2;
+}
+
+/* ===== PRINT TWEAKS ===== */
+@media print {
+  .dev-grid { grid-template-columns: repeat(4, 1fr); }
+  .card-grid { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .ai-flow { flex-wrap: nowrap; }
+  .cover { min-height: auto; height: 100vh; }
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!-- ==================== COVER ==================== --&gt;
+&lt;div class="cover"&gt;
+  &lt;div class="cover-grid"&gt;&lt;/div&gt;
+  &lt;div class="cover-glow"&gt;&lt;/div&gt;
+  &lt;div class="cover-glow2"&gt;&lt;/div&gt;
+  &lt;div class="cover-inner"&gt;
+    &lt;div class="cover-tag"&gt;Confidential · Sales Material&lt;/div&gt;
+    &lt;h1&gt;手术麻醉信息系统&lt;br&gt;&lt;span&gt;产品优势说明&lt;/span&gt;&lt;/h1&gt;
+    &lt;div class="cover-sub"&gt;杭州泽进科技有限公司&lt;/div&gt;
+    &lt;div class="cover-divider"&gt;&lt;/div&gt;
+    &lt;div class="cover-info"&gt;
+      &lt;div&gt;
+        &lt;strong&gt;日期&lt;/strong&gt;&lt;br&gt;
+        2026年4月
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;strong&gt;编制&lt;/strong&gt;&lt;br&gt;
+        售前解决方案部&lt;br&gt;&lt;br&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;strong&gt;文档编号&lt;/strong&gt;&lt;br&gt;
+        ZJ-ANES-2026-001
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="cover-footer"&gt;
+    &lt;span&gt;杭州泽进科技有限公司 © 2011-2026&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== TOC ==================== --&gt;
+&lt;div class="wrap toc-page page-break"&gt;
+  &lt;h2&gt;目录&lt;/h2&gt;
+  &lt;p class="toc-sub"&gt;CONTENTS · 全文共十章及附录&lt;/p&gt;
+  &lt;div class="toc-grid"&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num"&gt;01&lt;/span&gt;&lt;span class="toc-label"&gt;公司实力与资质&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num blue"&gt;02&lt;/span&gt;&lt;span class="toc-label"&gt;技术架构与信创适配&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num teal"&gt;03&lt;/span&gt;&lt;span class="toc-label"&gt;核心功能 — 术前/术中/术后&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num green"&gt;04&lt;/span&gt;&lt;span class="toc-label"&gt;医疗设备数据采集（MDI）&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num" style="background:#6C5CE7"&gt;05&lt;/span&gt;&lt;span class="toc-label"&gt;人工智能临床应用&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num gold"&gt;06&lt;/span&gt;&lt;span class="toc-label"&gt;移动应用与大屏系统&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num" style="background:#E84D4D"&gt;07&lt;/span&gt;&lt;span class="toc-label"&gt;标杆案例与客户口碑&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num"&gt;08&lt;/span&gt;&lt;span class="toc-label"&gt;评审支撑与政策合规&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num blue"&gt;09&lt;/span&gt;&lt;span class="toc-label"&gt;服务体系与成本优势&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="toc-item"&gt;&lt;span class="toc-num teal"&gt;10&lt;/span&gt;&lt;span class="toc-label"&gt;竞品多维度对比分析&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="wrap"&gt;
+
+&lt;!-- ==================== CH1 公司实力 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;1&lt;/span&gt;
+  &lt;h2&gt;公司实力与资质 &lt;span class="en"&gt;Company Profile&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="hero-banner navy no-break"&gt;
+  &lt;h3&gt;深耕急危重症临床信息化十四年&lt;/h3&gt;
+  &lt;p&gt;杭州泽进科技有限公司成立于2011年，是国内最早聚焦手术麻醉、重症监护、手术护理、急诊急救四大急危重症临床信息化方向的专业厂商之一。公司以"临床数据驱动医疗质量提升"为核心理念，集硬件研发生产、软件开发、数据平台建设于一体，是国内少数具备"设备层→数据层→应用层"全栈交付能力的企业。&lt;/p&gt;
+  &lt;span class="banner-icon"&gt;🏥&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;div class="stats no-break"&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val"&gt;14&lt;/div&gt;
+    &lt;div class="label"&gt;年深耕医疗信息化&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val"&gt;500+&lt;/div&gt;
+    &lt;div class="label"&gt;服务医疗机构&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val"&gt;150+&lt;/div&gt;
+    &lt;div class="label"&gt;专业服务团队&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val"&gt;90%&lt;/div&gt;
+    &lt;div class="label"&gt;本科及以上学历&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;企业资质矩阵&lt;/div&gt;
+&lt;p&gt;公司已通过国家及省级多项权威认证，资质体系覆盖高新技术、信息安全、质量管理、服务标准等多个维度，在同类厂商中资质完备度处于领先水平。&lt;/p&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon navy"&gt;🏅&lt;/div&gt;
+    &lt;h4&gt;国家级认定&lt;/h4&gt;
+    &lt;ul&gt;
+      &lt;li&gt;国家高新技术企业&lt;/li&gt;
+      &lt;li&gt;信息技术服务 ITSS 三级认证&lt;/li&gt;
+      &lt;li&gt;AAA 级企业资信等级认证&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;🏛️&lt;/div&gt;
+    &lt;h4&gt;省级认定&lt;/h4&gt;
+    &lt;ul&gt;
+      &lt;li&gt;浙江省专精特新中小企业&lt;/li&gt;
+      &lt;li&gt;浙江省科技型中小企业&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;🔐&lt;/div&gt;
+    &lt;h4&gt;国际体系认证&lt;/h4&gt;
+    &lt;ul&gt;
+      &lt;li&gt;质量管理体系 ISO 9001&lt;/li&gt;
+      &lt;li&gt;信息安全管理体系 ISO 27001&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon green"&gt;🔬&lt;/div&gt;
+    &lt;h4&gt;产学研合作&lt;/h4&gt;
+    &lt;ul&gt;
+      &lt;li&gt;联合国家卫健委 + 中科院软件所&lt;/li&gt;
+      &lt;li&gt;成立中科南京软件技术研究院&lt;/li&gt;
+      &lt;li&gt;医疗设备底层互操性联合研究&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="callout blue"&gt;
+  &lt;span class="icon"&gt;📌&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;对院方的意义：&lt;/strong&gt;ISO 27001 信息安全认证意味着厂商的数据安全管理体系达到国际标准，这在医疗数据安全日益受到重视的背景下，为医院在互联互通、智慧医院评审中的信息安全考核提供了有力背书。产学研深度合作则保证了产品的技术前瞻性和持续研发能力。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH2 技术架构 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;2&lt;/span&gt;
+  &lt;h2&gt;技术架构与信创适配 &lt;span class="en"&gt;Architecture&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="hero-banner blue no-break"&gt;
+  &lt;h3&gt;原生信创 · B/S 架构 · 多院区多租户&lt;/h3&gt;
+  &lt;p&gt;系统从底层芯片到上层应用全面支持国产化生态，采用 B/S 架构实现零客户端部署，原生支持多租户多院区架构，是行业内为数不多同时满足"信创合规 + 集团化管理 + 敏捷交付"三大要求的手术麻醉信息系统。&lt;/p&gt;
+  &lt;span class="banner-icon"&gt;⚙️&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;2.1 全栈信创适配&lt;/div&gt;
+&lt;p&gt;泽进科技已完成三大产品线（手麻、重症、MDI）对主流国产基础软硬件的全面适配，并已在浙江健康云等信创平台上实际部署运行，具备"即买即部署"的信创交付能力。&lt;/p&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;🖥️&lt;/div&gt;
+    &lt;h4&gt;国产操作系统&lt;/h4&gt;
+    &lt;p&gt;银河麒麟 · 统信 UOS · 龙蜥 Anolis&lt;/p&gt;
+    &lt;div style="margin-top:8px"&gt;&lt;span class="tag tag-blue"&gt;已适配&lt;/span&gt;&lt;span class="tag tag-blue"&gt;已部署&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;🗄️&lt;/div&gt;
+    &lt;h4&gt;国产数据库&lt;/h4&gt;
+    &lt;p&gt;达梦 DM · 南大通用 GBase · 人大金仓 KingBase&lt;/p&gt;
+    &lt;div style="margin-top:8px"&gt;&lt;span class="tag tag-teal"&gt;已适配&lt;/span&gt;&lt;span class="tag tag-teal"&gt;已部署&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon green"&gt;💻&lt;/div&gt;
+    &lt;h4&gt;开发语言与架构&lt;/h4&gt;
+    &lt;p&gt;JAVA 开源技术栈 · 微服务架构 · 容器化部署&lt;/p&gt;
+    &lt;div style="margin-top:8px"&gt;&lt;span class="tag tag-green"&gt;自主可控&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon gold"&gt;☁️&lt;/div&gt;
+    &lt;h4&gt;云平台验证&lt;/h4&gt;
+    &lt;p&gt;已在浙江健康云部署运行，可快速复制到各省信创云平台&lt;/p&gt;
+    &lt;div style="margin-top:8px"&gt;&lt;span class="tag tag-gold"&gt;生产验证&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="callout green"&gt;
+  &lt;span class="icon"&gt;✅&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;与竞品的关键差异：&lt;/strong&gt;市面多数手麻系统仍基于 Windows Server + Oracle/SQL Server 架构，信创改造涉及数据库迁移、操作系统替换、中间件适配等多个环节，改造周期通常 6-12 个月，且存在数据迁移风险。泽进系统原生支持信创，无需改造，部署即合规——对于即将面临信创评审的医院，这一差异意味着&lt;strong&gt;数月的工期节省和零迁移风险&lt;/strong&gt;。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;2.2 B/S 架构与多形态部署&lt;/div&gt;
+
+&lt;div class="ftable no-break"&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;🌐&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;B/S 原生架构&lt;/h5&gt;
+      &lt;p&gt;浏览器直接访问，无需安装任何客户端软件。服务端统一升级，所有终端即时生效，彻底告别"逐台电脑升级"的运维噩梦。支持 Chrome、Edge、Firefox、360 等主流浏览器。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;📦&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;多种部署形态&lt;/h5&gt;
+      &lt;p&gt;支持传统物理服务器部署、Docker 容器化部署、Kubernetes 微服务编排等多种形态。医院可根据 IT 基础设施现状灵活选择，也支持从传统部署平滑迁移到容器化架构。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;🏢&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;多租户多院区架构&lt;/h5&gt;
+      &lt;p&gt;一套系统服务多个院区，数据统一管理、文书模板共享、人员跨院区排班。各院区可保留独立的科室配置和质控规则，实现"统分结合"的集团化管理。总部可实时查看各院区手术运营数据。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;2.3 异构系统融合能力&lt;/div&gt;
+&lt;p&gt;系统提供&lt;strong&gt;API 数据网关&lt;/strong&gt;和&lt;strong&gt;任意页面外链配置&lt;/strong&gt;两种核心融合方式，可与 EMR、HIS、LIS、PACS、移动护理、手供追溯等第三方系统深度集成。数据接口采用组件化设计，标准化程度高，新系统对接通常可在 1-2 周内完成。&lt;/p&gt;
+
+&lt;div class="callout blue"&gt;
+  &lt;span class="icon"&gt;🔗&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;实际案例佐证：&lt;/strong&gt;复旦大学附属中山医院闵行分院上线时，系统与未来科技软件平台无缝融合，对接了手术申请、患者信息、药品信息、文书归档、CA 签名、设备管理、药品计费等 &lt;strong&gt;20+ 接口&lt;/strong&gt;，上线过程平稳顺畅，充分验证了泽进系统在复杂异构环境下的集成能力。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;2.4 灵活配置与快捷交付&lt;/div&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;🧩&lt;/div&gt;
+    &lt;h4&gt;模块化架构&lt;/h4&gt;
+    &lt;p&gt;文书、质控、统计各模块独立运行、独立升级，互不影响。单模块升级不会触发全系统重启，保障临床业务连续性。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;⚡&lt;/div&gt;
+    &lt;h4&gt;90% 配置化交付&lt;/h4&gt;
+    &lt;p&gt;90% 以上的定制工作可通过配置实现，无需厂商二次开发。现场实施人员即可完成文书模板调整、质控规则配置、统计报表定制等工作。&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="callout gold"&gt;
+  &lt;span class="icon"&gt;⏱️&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;需求响应承诺：&lt;/strong&gt;需求响应/交付时间 ≤2 小时。竞品通常需要 1-3 个月的版本迭代周期。对于质控标准频繁更新的现状（如国家麻醉质控指标从 2019 版升级到 2022 版），这种"临床人员自建规则"的能力意味着&lt;strong&gt;医院可以第一时间响应新标准，而不是等待厂商排期&lt;/strong&gt;。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH3 核心功能 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;3&lt;/span&gt;
+  &lt;h2&gt;核心功能优势 &lt;span class="en"&gt;Core Features&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;p&gt;泽进手术麻醉信息系统覆盖&lt;strong&gt;术前→术中→术后&lt;/strong&gt;全流程，同时提供护士工作站、科室管理站、统计分析、科研数据平台等完整功能矩阵。以下重点阐述与临床实际需求紧密结合的功能亮点。&lt;/p&gt;
+
+&lt;div class="sub-head"&gt;3.1 术前管理 — 信息自动汇聚，减少手工录入&lt;/div&gt;
+
+&lt;div class="ftable no-break"&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;📋&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;手术排班&lt;/h5&gt;
+      &lt;p&gt;支持按日期/科室/医生自动或手动排班；支持拖拽操作批量调整、换台、急诊手术插入。可按手术状态、排班状态筛选查看，支持跨日期查看排班。排班完成后自动通知相关医护人员。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;🔍&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;术前评估与访视&lt;/h5&gt;
+      &lt;p&gt;自动从 HIS/LIS/PACS 获取患者基本信息、检验结果、影像数据，自动填充到评估表对应位置。支持异常值自动标识，辅助医生快速识别风险因素。术前访视记录自动生成，支持打印签字。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;✍️&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;知情同意书&lt;/h5&gt;
+      &lt;p&gt;自动填充患者信息，支持 CA 数字签名和指纹比对双重认证。知情同意书模板可根据医院要求灵活配置，符合电子病历评审对知情同意书的完整要求。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;🏥&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;术前访视与患者信息集成&lt;/h5&gt;
+      &lt;p&gt;支持从 LIS 系统自动获取术前检验结果、从 PACS 系统自动获取影像数据，自动汇总到术前访视界面。支持记录系统异常情况和患者既往病史、过敏史，为麻醉方案制定提供全面参考。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;3.2 术中管理 — 系统核心竞争力&lt;/div&gt;
+
+&lt;div class="callout red"&gt;
+  &lt;span class="icon"&gt;⭐&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;术中管理是手术麻醉系统的灵魂。&lt;/strong&gt;一个手麻系统是否好用，麻醉医师最有发言权。泽进系统在术中管理的深度和细度上，是目前国内同类产品中最完善的——这不是厂商自说自话，而是 500+ 家医院麻醉医师在实际使用中验证过的。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub4"&gt;📋 麻醉记录单&lt;/div&gt;
+&lt;p&gt;麻醉记录单是麻醉医师术中最核心的工作界面，泽进系统在以下方面做到了极致：&lt;/p&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;h4&gt;自动绘制&lt;/h4&gt;
+    &lt;p&gt;实时采集监护设备数据，自动生成麻醉记录单曲线。支持&lt;strong&gt;表格、曲线、混合、标识&lt;/strong&gt;四种显示模式，麻醉医师可根据个人习惯自由切换。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;h4&gt;拖拽交互&lt;/h4&gt;
+    &lt;p&gt;支持通过鼠标拖拽直接修改数据值，操作直观高效。支持补录麻醉记录，支持记录单上方展示关键事件（插管/拔管/用药等）。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;h4&gt;模板与效率&lt;/h4&gt;
+    &lt;p&gt;支持存储/加载常用用药模板，一键套用。支持通过&lt;strong&gt;拼音首字母快速检索&lt;/strong&gt;药品，同时支持开窗选取模式，两种方式并行，兼顾效率与准确性。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;h4&gt;完整性保障&lt;/h4&gt;
+    &lt;p&gt;系统智能监测操作流程和记录完整性。关键事件自动在时间轴上方标记。支持记录麻醉医师/护士在术中的巡护信息和交接记录。&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub4"&gt;💊 用药与输血管理&lt;/div&gt;
+
+&lt;div class="ftable no-break"&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;💉&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;精细化用药记录&lt;/h5&gt;
+      &lt;p&gt;支持记录术中抢救用药、血管活性药物、止血药品等特殊用药分类。支持按药品类别、给药途径分组显示。支持拖拽调整用药记录的时间顺序。支持记录术中输液、输血全流程。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon"&gt;💰&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;药品/耗材一键计费&lt;/h5&gt;
+      &lt;p&gt;术中使用的药品和耗材通过接口一键上传到 HIS 系统完成计费，彻底解决重复录入问题。退费药品自动识别并从计费列表中移除。耗材同样支持一键上传和退费自动处理。药品品名与 HIS 品名自动匹配，减少人工核对工作量。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub4"&gt;✅ 自动化质控引擎&lt;/div&gt;
+
+&lt;div class="callout green"&gt;
+  &lt;span class="icon"&gt;🎯&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;这是泽进系统最值得向主任汇报的功能之一。&lt;/strong&gt;国家麻醉质控指标每年都在更新，很多医院苦于系统跟不上标准变化，质控数据需要手工填报。泽进系统的&lt;strong&gt;自定义质控引擎&lt;/strong&gt;允许临床人员（而非厂商工程师）自行创建和调整质控规则——从规则定义到数据抓取到报表生成，全流程自动化。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon green"&gt;📐&lt;/div&gt;
+    &lt;h4&gt;自定义埋点规则&lt;/h4&gt;
+    &lt;p&gt;临床人员可通过可视化界面自行创建新的质控规则，无需编程基础。规则支持多条件组合、逻辑判断、时间窗口等高级配置。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;🧮&lt;/div&gt;
+    &lt;h4&gt;自定义 JS 计算器&lt;/h4&gt;
+    &lt;p&gt;对于复杂的质控指标（如麻醉开始时间的判定标准），支持通过自定义 JavaScript 计算器实现精确计算。准确应对逐年提高的质控标准。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;📊&lt;/div&gt;
+    &lt;h4&gt;自动报表生成&lt;/h4&gt;
+    &lt;p&gt;内置国家麻醉质控指标 2022 版全部指标，支持自动抓取数据生成质控报表。报表可直接用于国家/省级质控中心数据上报。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon gold"&gt;⚡&lt;/div&gt;
+    &lt;h4&gt;实时响应新标准&lt;/h4&gt;
+    &lt;p&gt;当国家或省级质控中心发布新指标时，临床人员可在 ≤2 小时内完成新规则配置并投入使用，无需等待厂商版本更新。&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;3.3 术后管理 — 形成完整闭环&lt;/div&gt;
+
+&lt;div class="ftable no-break"&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--green-soft)"&gt;🏥&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;PACU 恢复室管理&lt;/h5&gt;
+      &lt;p&gt;支持同时查看多个患者体征趋势；内置 Aldrete 评分表自动评分；支持记录术后镇痛、输血、用药等恢复期处置；支持按患者查看恢复室记录详情；直观展示已出恢复室患者的停留时长和恢复时长。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--gold-soft)"&gt;📝&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;术后访视与随访&lt;/h5&gt;
+      &lt;p&gt;支持记录术后访视内容并自动获取患者信息。支持记录麻醉并发症、镇痛泵使用情况、恶心呕吐等术后不良反应。支持多次访视记录的对比查看。系统自动汇总全麻/局麻统计数据，为麻醉总结提供数据支撑。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--teal-soft)"&gt;📄&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;手术小结与麻醉总结&lt;/h5&gt;
+      &lt;p&gt;手术名称、麻醉方式、术中用药等信息自动同步到手术小结，减少重复录入。麻醉总结自动汇总全麻/局麻分类统计数据，支持按医院要求定制小结模板。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;3.4 护士工作站&lt;/div&gt;
+
+&lt;div class="ftable no-break"&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--gold-soft)"&gt;👩‍⚕️&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;安全核查（三方核查）&lt;/h5&gt;
+      &lt;p&gt;严格执行&lt;strong&gt;术前核查→麻醉开始前核查→患者离开手术室前核查&lt;/strong&gt;三阶段安全核查流程。支持扫码核对患者身份、手术部位、麻醉方式等关键信息，杜绝"开错刀"等严重不良事件。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--green-soft)"&gt;📦&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;清点与器械管理&lt;/h5&gt;
+      &lt;p&gt;支持手术物品清点记录（纱布、器械等），可通过接口与供应系统对接实现器械追溯。压疮评估表自动计算评分并生成风险预警。支持记录手术器械使用明细。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;3.5 统计分析 — 20+ 维度全覆盖&lt;/div&gt;
+&lt;p&gt;系统提供超过 20 个维度的统计报表，涵盖手术量、ASA 分级、麻醉医师工作量、护士工作量、手术台次、麻醉恢复、麻醉取消、设备巡检、药品使用等全场景。支持自定义统计维度、定时自动统计、Excel 格式导出。统计结果可根据医院要求定制报表样式。&lt;/p&gt;
+
+&lt;div class="sub-head"&gt;3.6 科研统计平台 — 从数据到论文&lt;/div&gt;
+
+&lt;div class="callout blue"&gt;
+  &lt;span class="icon"&gt;🔬&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;主任关心的科研价值：&lt;/strong&gt;每家省级三甲都希望利用临床数据发论文、报课题。泽进系统提供的不是简单的"数据导出"，而是一套完整的&lt;strong&gt;后结构化科研数据平台&lt;/strong&gt;——从数据清洗、结构化存储、到多维度查询分析、可视化展示，全流程支持。已有合作医院利用系统数据成功发表论文和申报课题。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;📁&lt;/div&gt;
+    &lt;h4&gt;科研数据集管理&lt;/h4&gt;
+    &lt;p&gt;科研人员可根据研究课题创建专属数据集，支持团队协作和私有数据集权限管理。数据集支持版本管理和数据溯源。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;🔎&lt;/div&gt;
+    &lt;h4&gt;多维度专业查询&lt;/h4&gt;
+    &lt;p&gt;围术期药物查询（频次筛选+多条件组合）、麻醉方式查询、血气查询（区间筛选+异常值标识）、检验查询等专业查询工具。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon green"&gt;📊&lt;/div&gt;
+    &lt;h4&gt;数据可视化&lt;/h4&gt;
+    &lt;p&gt;自动生成直方图、饼图、柱状图、趋势图等多种图表。支持图表导出和团队共享。支持自定义图表维度和筛选条件。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon gold"&gt;🧬&lt;/div&gt;
+    &lt;h4&gt;AI 科研扩展&lt;/h4&gt;
+    &lt;p&gt;后结构化数据库为时间序列 AI 研究、机器学习建模提供坚实基础。支持对接第三方科研分析平台。&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH4 MDI ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;4&lt;/span&gt;
+  &lt;h2&gt;医疗设备数据采集（MDI）&lt;span class="en"&gt;Device Integration&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="hero-banner teal no-break"&gt;
+  &lt;h3&gt;800+ 设备型号 · 硬件级波形采集 · 国内覆盖最全&lt;/h3&gt;
+  &lt;p&gt;泽进科技是国内医疗设备数据采集领域的领军企业。自主研发的 MDI 平台支持超过 800 种医疗设备型号的数据采集，拥有独有的硬件级波形采集和实时分析技术，在设备覆盖广度和波形处理深度上均处于国内领先水平。&lt;/p&gt;
+  &lt;span class="banner-icon"&gt;📡&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;div class="stats no-break"&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, #0a7e8c, var(--teal));-webkit-background-clip:text;"&gt;800+&lt;/div&gt;
+    &lt;div class="label"&gt;支持设备型号&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, #0a7e8c, var(--teal));-webkit-background-clip:text;"&gt;8+&lt;/div&gt;
+    &lt;div class="label"&gt;设备大类&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, #0a7e8c, var(--teal));-webkit-background-clip:text;"&gt;硬件级&lt;/div&gt;
+    &lt;div class="label"&gt;数据采集深度&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, #0a7e8c, var(--teal));-webkit-background-clip:text;"&gt;独有&lt;/div&gt;
+    &lt;div class="label"&gt;波形采集技术&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="dev-grid no-break"&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;💓&lt;/div&gt;
+    &lt;h5&gt;监护仪&lt;/h5&gt;
+    &lt;p&gt;心排、血氧、脑电等专业监护&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;🫁&lt;/div&gt;
+    &lt;h5&gt;呼吸机/麻醉机&lt;/h5&gt;
+    &lt;p&gt;全品牌实时数据采集&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;🩸&lt;/div&gt;
+    &lt;h5&gt;CRRT/血透机&lt;/h5&gt;
+    &lt;p&gt;连续肾脏替代及血液透析&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;⚡&lt;/div&gt;
+    &lt;h5&gt;重症专属&lt;/h5&gt;
+    &lt;p&gt;ECMO · IABP · 尿动力 · 血糖&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;💉&lt;/div&gt;
+    &lt;h5&gt;智能输液泵&lt;/h5&gt;
+    &lt;p&gt;单机及联网模式&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;🧪&lt;/div&gt;
+    &lt;h5&gt;实验室设备&lt;/h5&gt;
+    &lt;p&gt;血气·生化·尿液分析仪&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;🔧&lt;/div&gt;
+    &lt;h5&gt;质控设备&lt;/h5&gt;
+    &lt;p&gt;Fluke 生命体征模拟器等&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="dev-card"&gt;
+    &lt;div class="emoji"&gt;👶&lt;/div&gt;
+    &lt;h5&gt;新生儿设备&lt;/h5&gt;
+    &lt;p&gt;暖箱·辐射台等&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="callout red"&gt;
+  &lt;span class="icon"&gt;⚠️&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;行业壁垒分析：&lt;/strong&gt;竞品通常仅支持几十到百余种设备型号的接入，且多采用纯软件层采集（通过 HL7/ASTM 等标准协议），波形数据支持极为有限。泽进的 800+ 设备覆盖 + &lt;strong&gt;硬件级波形采集技术&lt;/strong&gt;构成了一道短期内无法被复制的行业壁垒——设备驱动库的积累需要与每家设备厂商逐一适配测试，波形采集的稳定性需要长时间的临床验证。这不是"有钱就能追上"的能力，而是&lt;strong&gt;十四年技术沉淀的结果&lt;/strong&gt;。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH5 AI ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;5&lt;/span&gt;
+  &lt;h2&gt;人工智能临床应用 &lt;span class="en"&gt;AI Integration&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="hero-banner navy no-break" style="background: linear-gradient(135deg, #2d1b69 0%, #6C5CE7 100%);"&gt;
+  &lt;h3&gt;从记录辅助到临床决策支持 — AI 深度嵌入围术期全流程&lt;/h3&gt;
+  &lt;p&gt;泽进系统的 AI 应用不是简单的"语音录入"或"聊天机器人"，而是将人工智能深度嵌入围术期全流程，从手术流程监测、病情动态分析、实时预警到风险预测，形成完整的智能辅助闭环。系统支持模块化接入 DeepSeek 等主流大模型。&lt;/p&gt;
+  &lt;span class="banner-icon"&gt;🤖&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;5.1 AI 智能问答&lt;/div&gt;
+&lt;p&gt;系统嵌入医学领域 AI 智能问答模块，基于围术期医学知识库，精准解答手术要点、治疗方案细节等临床疑问。医护输入问题，机器人快速响应。知识库覆盖围术期全流程相关知识，支持持续更新和扩展。&lt;/p&gt;
+
+&lt;div class="sub-head"&gt;5.2 AI 智能病历生成&lt;/div&gt;
+&lt;p&gt;传统病历书写平均耗时 15-30 分钟/台，且容易出现数据遗漏和逻辑错误。泽进系统的 AI 病历生成功能通过自动抓取术中关键信息（生命体征趋势、用药记录、关键事件等），经自然语言处理自动生成规范化病历，将书写时间缩短至&lt;strong&gt; 3-5 分钟&lt;/strong&gt;，同时显著降低记录错误率。&lt;/p&gt;
+
+&lt;div class="sub-head"&gt;5.3 AI 围术期全流程驱动&lt;/div&gt;
+
+&lt;div class="ai-flow no-break"&gt;
+  &lt;div class="ai-step"&gt;
+    &lt;div class="dot"&gt;1&lt;/div&gt;
+    &lt;h5&gt;流程监测&lt;/h5&gt;
+    &lt;p&gt;智能监测操作流程和记录完整性，确保数据准确无遗漏&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="ai-step"&gt;
+    &lt;div class="dot"&gt;2&lt;/div&gt;
+    &lt;h5&gt;操作审查&lt;/h5&gt;
+    &lt;p&gt;识别并纠正治疗与记录中的错误，保障操作规范&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="ai-step"&gt;
+    &lt;div class="dot"&gt;3&lt;/div&gt;
+    &lt;h5&gt;动态分析&lt;/h5&gt;
+    &lt;p&gt;评估操作对病情的影响（如药品效果），为调整提供依据&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="ai-step"&gt;
+    &lt;div class="dot"&gt;4&lt;/div&gt;
+    &lt;h5&gt;实时预警&lt;/h5&gt;
+    &lt;p&gt;异常指标预警，分析治疗措施合理性，无效则再次预警&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="ai-step"&gt;
+    &lt;div class="dot"&gt;5&lt;/div&gt;
+    &lt;h5&gt;风险预测&lt;/h5&gt;
+    &lt;p&gt;依据历史病情预测术中危险概率，给出处置和用药建议&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="callout blue"&gt;
+  &lt;span class="icon"&gt;💡&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;临床价值解读：&lt;/strong&gt;以"风险预测"为例——系统依据患者既往病史、术前检验数据和术中实时体征，通过 AI 模型预测术中可能出现的危险事件（如低血压、心律失常、过敏反应等），并给出预防性处置建议。这意味着麻醉医师可以在危险发生&lt;strong&gt;之前&lt;/strong&gt;就采取干预措施，真正实现从"事后处理"到"事前预防"的转变。这对降低围术期不良事件发生率、提升患者安全具有直接的临床价值。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH6 移动应用 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;6&lt;/span&gt;
+  &lt;h2&gt;移动应用与大屏系统 &lt;span class="en"&gt;Mobile &amp; Display&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;6.1 微信小程序 — 随时掌握科室动态&lt;/div&gt;
+&lt;p&gt;专为手麻/重症场景设计的微信小程序，帮助科主任、骨干医生在进修、出差、值班交接等场景下远程关注患者及科室运营情况。&lt;/p&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;📱&lt;/div&gt;
+    &lt;h4&gt;术前准备查看&lt;/h4&gt;
+    &lt;p&gt;查看排台信息、患者基本信息、手术安排详情。支持按日期和科室筛选。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;📊&lt;/div&gt;
+    &lt;h4&gt;术中实时状态&lt;/h4&gt;
+    &lt;p&gt;查看手术进行中的患者列表、手术状态、麻醉开始/结束时间。支持双指放大查看麻醉记录单详情。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon green"&gt;🏥&lt;/div&gt;
+    &lt;h4&gt;术后恢复查看&lt;/h4&gt;
+    &lt;p&gt;查看恢复室患者列表及恢复记录。直观展示已出恢复室患者的停留时长。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon gold"&gt;📈&lt;/div&gt;
+    &lt;h4&gt;手术统计&lt;/h4&gt;
+    &lt;p&gt;柱状图展示每日手术数量，饼图展示 ASA 分级和麻醉医师工作量分布。&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="callout green"&gt;
+  &lt;span class="icon"&gt;🔒&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;安全合规设计：&lt;/strong&gt;小程序充分适配医院特殊网络要求——等级保护合规、数据不离院内网、云端零存储、医院零部署、医护零安装。支持水印保护，权限管理严格，需通过院方审核方可访问。这意味着&lt;strong&gt;信息科主任和医务处不会有安全顾虑&lt;/strong&gt;。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;6.2 大屏显示系统&lt;/div&gt;
+
+&lt;div class="ftable no-break"&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--gray-100)"&gt;📺&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;手术状态总览&lt;/h5&gt;
+      &lt;p&gt;支持多层级状态显示，手术状态实时刷新。患者姓名支持脱敏显示（如"张*三"），保护患者隐私。支持分诊颜色标识（绿色/黄色/红色），直观展示手术间繁忙程度。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="ftable-row"&gt;
+    &lt;div class="ftable-icon" style="background:var(--gray-100)"&gt;📢&lt;/div&gt;
+    &lt;div class="ftable-content"&gt;
+      &lt;h5&gt;通知与教学&lt;/h5&gt;
+      &lt;p&gt;支持循环播放通知公告，内容独立编辑。支持教学视频播放（视频、PPT、图片格式），可作为科室培训和学术交流的展示平台。上方通知栏 + 下方手术间状态的经典布局，符合手术室实际使用习惯。&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH7 案例 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;7&lt;/span&gt;
+  &lt;h2&gt;标杆案例与客户口碑 &lt;span class="en"&gt;Case Studies&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="hero-banner green no-break"&gt;
+  &lt;h3&gt;服务 500+ 医院 · 多家通过电子病历六级评审&lt;/h3&gt;
+  &lt;p&gt;泽进科技的客户覆盖浙江、上海、江苏等华东核心区域，并逐步向全国拓展。标杆客户涵盖综合三甲、肿瘤专科、妇产专科等多种类型，其中多家医院在泽进系统的支撑下通过了&lt;strong&gt;电子病历六级&lt;/strong&gt;评审（全国通过率不足 5%）。&lt;/p&gt;
+  &lt;span class="banner-icon"&gt;🏆&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;div class="case t1 no-break"&gt;
+  &lt;h4&gt;🏥 杭州市第一人民医院&lt;/h4&gt;
+  &lt;p style="font-size:13px;color:var(--gray-500);margin-bottom:10px;"&gt;杭州地区最大的综合性三级甲等医院之一 · 每日手术量超 100 台&lt;/p&gt;
+  &lt;ul&gt;
+    &lt;li&gt;2021年通过&lt;strong&gt;电子病历六级、互联互通五级乙等&lt;/strong&gt;评审&lt;/li&gt;
+    &lt;li&gt;2021年成功入选"5G+远程监护"数字化医疗新模式项目&lt;/li&gt;
+    &lt;li&gt;城北院区：手术室+内镜室+导管室等共计 11 个点位全面上线（2022年）&lt;/li&gt;
+    &lt;li&gt;湖滨院区：手术室+支气管镜室+导管室+恢复室等共计 23 个点位全面上线（2022年）&lt;/li&gt;
+    &lt;li&gt;两院区共计 34 个点位统一管理，充分验证了多院区架构能力&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;div class="tags"&gt;
+    &lt;span class="tag tag-blue"&gt;电子病历六级&lt;/span&gt;
+    &lt;span class="tag tag-teal"&gt;互联互通五乙&lt;/span&gt;
+    &lt;span class="tag tag-green"&gt;5G+远程监护&lt;/span&gt;
+    &lt;span class="tag tag-gold"&gt;多院区部署&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="case t2 no-break"&gt;
+  &lt;h4&gt;🏥 浙江省肿瘤医院&lt;/h4&gt;
+  &lt;p style="font-size:13px;color:var(--gray-500);margin-bottom:10px;"&gt;新中国成立最早的四所肿瘤医院之一 · 中国科学院杭州医学研究所&lt;/p&gt;
+  &lt;ul&gt;
+    &lt;li&gt;手术间 30+，恢复室 2 间共 20+ 床位，每日手术量超 120 台&lt;/li&gt;
+    &lt;li&gt;肿瘤样本库标本总量 30 万份以上，国内规模较大的样本库之一&lt;/li&gt;
+    &lt;li&gt;系统与肿瘤专科的特殊需求深度适配，支撑肿瘤手术的精细化管理&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;div class="tags"&gt;
+    &lt;span class="tag tag-blue"&gt;三甲肿瘤专科&lt;/span&gt;
+    &lt;span class="tag tag-teal"&gt;中科院合作&lt;/span&gt;
+    &lt;span class="tag tag-gold"&gt;高手术量验证&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="case t3 no-break"&gt;
+  &lt;h4&gt;🏥 复旦大学附属中山医院（闵行分院）&lt;/h4&gt;
+  &lt;p style="font-size:13px;color:var(--gray-500);margin-bottom:10px;"&gt;国家卫健委委预算管理单位 · 国家发改委首批"辅导类"国家医学中心创建单位 · 上海三甲&lt;/p&gt;
+  &lt;ul&gt;
+    &lt;li&gt;2023 年 6 月上线泽进手术麻醉信息系统，覆盖 20 个手术间&lt;/li&gt;
+    &lt;li&gt;系统与来未来科技软件平台无缝融合，对接 20+ 接口&lt;/li&gt;
+    &lt;li&gt;对接内容包括：手术申请、患者信息、药品信息、文书归档、CA 签名、设备管理、药品计费、医嘱执行等&lt;/li&gt;
+    &lt;li&gt;作为国家医学中心创建单位，对系统的技术先进性和稳定性要求极高，上线过程平稳顺畅&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;div class="tags"&gt;
+    &lt;span class="tag tag-navy"&gt;国家医学中心&lt;/span&gt;
+    &lt;span class="tag tag-blue"&gt;上海三甲&lt;/span&gt;
+    &lt;span class="tag tag-teal"&gt;复杂集成验证&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="case t1 no-break"&gt;
+  &lt;h4&gt;🏥 台州恩泽医疗中心&lt;/h4&gt;
+  &lt;ul&gt;
+    &lt;li&gt;2021年通过&lt;strong&gt;电子病历六级、互联互通五级乙等&lt;/strong&gt;评审&lt;/li&gt;
+    &lt;li&gt;2022年完成系统全面铺开，手术室+内镜室+导管室等共计 23 个点位&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;div class="tags"&gt;
+    &lt;span class="tag tag-blue"&gt;电子病历六级&lt;/span&gt;
+    &lt;span class="tag tag-teal"&gt;互联互通五乙&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;更多标杆客户&lt;/div&gt;
+
+&lt;table class="no-break"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;医院名称&lt;/th&gt;&lt;th&gt;等级&lt;/th&gt;&lt;th&gt;电子病历&lt;/th&gt;&lt;th&gt;互联互通&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;杭州市妇产科医院&lt;/td&gt;&lt;td&gt;三甲&lt;/td&gt;&lt;td&gt;五级&lt;/td&gt;&lt;td&gt;四级甲等&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;浙江省立同德医院&lt;/td&gt;&lt;td&gt;三甲&lt;/td&gt;&lt;td&gt;五级&lt;/td&gt;&lt;td&gt;四级甲等&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;浙江中医药大学附属第三医院&lt;/td&gt;&lt;td&gt;三甲&lt;/td&gt;&lt;td&gt;四级&lt;/td&gt;&lt;td&gt;四级甲等&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;杭州市西溪医院&lt;/td&gt;&lt;td&gt;三甲&lt;/td&gt;&lt;td&gt;四级&lt;/td&gt;&lt;td&gt;四级甲等&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class="callout gold"&gt;
+  &lt;span class="icon"&gt;💬&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;给主任的一句话：&lt;/strong&gt;以上这些医院的麻醉科主任，在选型时和您考虑的问题是一样的——系统稳不稳定、数据准不准、能不能跟上评审要求、出了问题厂商能不能及时响应。泽进系统在这些医院的实际运行表现，就是最好的答案。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH8 评审 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;8&lt;/span&gt;
+  &lt;h2&gt;评审支撑与政策合规 &lt;span class="en"&gt;Compliance&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在当前医院评审体系日趋严格的背景下，手术麻醉信息系统已成为多项评审的&lt;strong&gt;核心检查对象&lt;/strong&gt;。泽进系统的功能设计深度贴合各项评审标准，是医院通过评审的有力工具。&lt;/p&gt;
+
+&lt;div class="card-grid no-break"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon navy"&gt;🏆&lt;/div&gt;
+    &lt;h4&gt;等级医院评审&lt;/h4&gt;
+    &lt;p&gt;全面支撑三甲/三乙等各级别医院评审要求。手术安全核查、麻醉记录规范性、不良事件上报等核心指标均有对应功能模块。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon blue"&gt;📊&lt;/div&gt;
+    &lt;h4&gt;电子病历评级&lt;/h4&gt;
+    &lt;p&gt;支持&lt;strong&gt;六级&lt;/strong&gt;能力要求。已有杭州市第一人民医院、台州恩泽医疗中心等多家医院在泽进系统支撑下通过六级评审。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon teal"&gt;🔗&lt;/div&gt;
+    &lt;h4&gt;互联互通评级&lt;/h4&gt;
+    &lt;p&gt;支持&lt;strong&gt;五级乙等&lt;/strong&gt;能力要求。标准化数据接口 + 组件化集成，满足互联互通对信息共享和业务协同的高标准。&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon green"&gt;🤖&lt;/div&gt;
+    &lt;h4&gt;智慧医院评级&lt;/h4&gt;
+    &lt;p&gt;AI 智能辅助 + 移动应用 + 设备数据集成（MDI），全方位支撑智慧服务、智慧医疗、智慧管理三个维度的评级要求。&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;国家麻醉质控指标全面支撑&lt;/div&gt;
+&lt;p&gt;系统内置&lt;strong&gt;国家麻醉质控指标 2022 版&lt;/strong&gt;全部指标，支持自动抓取数据、自动生成质控报表，报表可直接用于国家/省级质控中心数据上报。当新版指标发布时，临床人员可通过自定义规则引擎在 ≤2 小时内完成适配。&lt;/p&gt;
+
+&lt;div class="callout green"&gt;
+  &lt;span class="icon"&gt;💰&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;费用承诺：&lt;/strong&gt;评级相关支持&lt;strong&gt;不收费或收费低廉&lt;/strong&gt;。提供专业评审顾问支持，协助医院准备评审材料。这不是画饼——杭州第一人民医院、台州恩泽医疗中心等六级评审通过案例，背后都有泽进团队的全程支持。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH9 服务 ==================== --&gt;
+&lt;div class="sec-head"&gt;
+  &lt;span class="num"&gt;9&lt;/span&gt;
+  &lt;h2&gt;服务体系与成本优势 &lt;span class="en"&gt;Service &amp; Cost&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="stats no-break"&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, var(--green), #00d4a0);-webkit-background-clip:text;"&gt;7×24&lt;/div&gt;
+    &lt;div class="label"&gt;全天候技术支持&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, var(--green), #00d4a0);-webkit-background-clip:text;"&gt;≤2h&lt;/div&gt;
+    &lt;div class="label"&gt;需求响应时间&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, var(--green), #00d4a0);-webkit-background-clip:text;"&gt;全国&lt;/div&gt;
+    &lt;div class="label"&gt;本地化服务覆盖&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="val" style="background:linear-gradient(135deg, var(--green), #00d4a0);-webkit-background-clip:text;"&gt;驻场&lt;/div&gt;
+    &lt;div class="label"&gt;实施团队支持&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;成本效益分析&lt;/div&gt;
+
+&lt;table class="no-break"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;成本项目&lt;/th&gt;&lt;th&gt;泽进系统&lt;/th&gt;&lt;th&gt;行业普遍水平&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;维护成本&lt;/td&gt;&lt;td&gt;低（B/S 架构，服务端统一升级）&lt;/td&gt;&lt;td&gt;中（C/S 架构，需逐台维护）&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;升级成本&lt;/td&gt;&lt;td&gt;低（模块化升级，不影响业务）&lt;/td&gt;&lt;td&gt;中-高（全系统升级，需停机）&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;功能改造&lt;/td&gt;&lt;td&gt;不收费或收费低廉&lt;/td&gt;&lt;td&gt;按人天收费（1500-3000 元/人天）&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;接口改造&lt;/td&gt;&lt;td&gt;不收费或收费低廉&lt;/td&gt;&lt;td&gt;按次收费（5000-20000 元/次）&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;评级支持&lt;/td&gt;&lt;td&gt;不收费或收费低廉&lt;/td&gt;&lt;td&gt;单独报价（数万到数十万）&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;新标准适配&lt;/td&gt;&lt;td&gt;临床人员自行配置，≤2 小时&lt;/td&gt;&lt;td&gt;等待厂商版本更新（1-3 个月）&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class="callout gold"&gt;
+  &lt;span class="icon"&gt;💡&lt;/span&gt;
+  &lt;div&gt;&lt;strong&gt;全生命周期成本测算：&lt;/strong&gt;以一家拥有 30 间手术室的三甲医院为例，系统使用周期 5 年内，仅功能改造和接口改造两项，泽进系统预计可为医院节省 &lt;strong&gt;30-80 万元&lt;/strong&gt;。加上评级支持免费、质控规则自建等隐性成本节省，总拥有成本（TCO）优势显著。&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ==================== CH10 竞品对比 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num"&gt;10&lt;/span&gt;
+  &lt;h2&gt;竞品多维度对比分析 &lt;span class="en"&gt;Competitive Analysis&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;p&gt;以下从 12 个关键维度，将泽进系统与市面主流手术麻醉信息系统进行客观对比。对比基于公开信息、客户反馈及行业调研，供院方选型参考。&lt;/p&gt;
+
+&lt;table class="cmp-table no-break"&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th style="width:16%"&gt;对比维度&lt;/th&gt;&lt;th style="width:42%"&gt;泽进系统&lt;/th&gt;&lt;th style="width:42%"&gt;市面多数竞品&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;系统架构&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;B/S 原生，支持网页/客户端/Docker/微服务多形态部署&lt;/td&gt;&lt;td&gt;多为 C/S 架构，需安装客户端，升级维护困难&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;信创适配&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;原生全栈信创，已部署验证，即买即合规&lt;/td&gt;&lt;td&gt;多基于 Windows + 国外数据库，信创改造周期 6-12 个月&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;多院区支持&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;原生多租户架构，一套系统服务多院区，统分结合&lt;/td&gt;&lt;td&gt;多需单独部署，院区间数据打通困难&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;设备采集&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;800+ 种，硬件级波形采集，独有技术壁垒&lt;/td&gt;&lt;td&gt;几十到百余种，纯软件采集，波形支持有限&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;AI 能力&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;全流程嵌入（问答+病历+预警+决策支持），支持大模型接入&lt;/td&gt;&lt;td&gt;多停留在语音录入或简单问答层面&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;质控引擎&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;临床人员可自建规则，≤2h 响应新标准&lt;/td&gt;&lt;td&gt;依赖厂商版本更新，周期 1-3 个月&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;科研平台&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;后结构化数据库 + 专业查询分析 + 可视化工具&lt;/td&gt;&lt;td&gt;多不提供或仅提供基础统计导出&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;移动应用&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;微信小程序 + 大屏，零部署零安装，数据不离院&lt;/td&gt;&lt;td&gt;多需安装独立 APP，安全合规性待评估&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;接口开放&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;API 网关 + 外链配置，组件化，低成本开放&lt;/td&gt;&lt;td&gt;部分系统接口封闭，或需额外付费开通&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;交付模式&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;90% 配置化交付，实施即上线&lt;/td&gt;&lt;td&gt;多依赖二次开发，定制周期长&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;服务响应&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;≤2 小时，7×24 小时全天候&lt;/td&gt;&lt;td&gt;通常 24-48 小时工作日响应&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;strong&gt;费用模式&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;功能改造/接口改造/评级支持低费或免费&lt;/td&gt;&lt;td&gt;按次/按人天/单独报价，隐性成本高&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- ==================== 附录 ==================== --&gt;
+&lt;div class="sec-head page-break"&gt;
+  &lt;span class="num" style="background:var(--gray-500)"&gt;附&lt;/span&gt;
+  &lt;h2&gt;完整功能模块一览 &lt;span class="en"&gt;Appendix&lt;/span&gt;&lt;/h2&gt;
+&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;医生工作站&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;术前模块&lt;/span&gt;&lt;span&gt;手术申请 · 排班查看 · 术前评估 · 术前访视 · 知情同意书 · 麻醉方案 · 患者信息自动获取&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;术中模块&lt;/span&gt;&lt;span&gt;麻醉记录单（自动生成/拖拽/模板/补录） · 用药记录（快速检索/一键计费） · 输血记录 · 关键事件标记 · 体征自动采集 · 拔管/插管记录 · 手术结束通知&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;术后模块&lt;/span&gt;&lt;span&gt;PACU 管理（Aldrete 评分） · 术后访视 · 术后随访 · 手术小结 · 麻醉总结 · 麻醉方式登记 · 历史手术查询 · 设备巡检&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;统计模块&lt;/span&gt;&lt;span&gt;质量统计（20+ 维度） · 手术统计 · 科研统计（数据集/药物查询/血气查询/可视化） · 自定义统计维度 · 定时自动统计 · Excel 导出&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;系统管理&lt;/span&gt;&lt;span&gt;账号管理 · 角色管理 · 药品管理 · 耗材管理 · 文书模板管理 · 质控规则配置 · 预警阈值设置&lt;/span&gt;&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;护士工作站&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;排台管理&lt;/span&gt;&lt;span&gt;拖拽排班 · 手术间新增/调整 · 急诊插入 · 手术间利用率查看&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;患者核对&lt;/span&gt;&lt;span&gt;扫码核对（术前核查/麻醉前核查/离室前三方核查） · 身份/部位/方式三重确认&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;安全核查单&lt;/span&gt;&lt;span&gt;实施前核查 · 切皮前核查 · 离开手术室前核查 · 医/麻/护三方签字&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;清点管理&lt;/span&gt;&lt;span&gt;手术物品清点 · 对接供应系统 · 器械清点 · 压疮评估（自动评分）&lt;/span&gt;&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;科室管理站&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;趋势查看&lt;/span&gt;&lt;span&gt;多患者/多指标同时查看 · 趋势图展示 · 异常值标识&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;实时监测&lt;/span&gt;&lt;span&gt;科室巡检 · 患者状态监测 · 数据实时刷新&lt;/span&gt;&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;大屏显示系统&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;状态展示&lt;/span&gt;&lt;span&gt;手术状态实时刷新 · 分诊颜色标识 · 隐私脱敏显示&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;通知教学&lt;/span&gt;&lt;span&gt;循环通知播放 · 教学视频/PPT/图片播放 · 医生排班展示&lt;/span&gt;&lt;/div&gt;
+
+&lt;div class="sub-head"&gt;微信小程序&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;全流程&lt;/span&gt;&lt;span&gt;术前准备查看 · 术中状态实时查看 · 术后恢复查看 · 麻醉记录单查看（双指放大）&lt;/span&gt;&lt;/div&gt;
+&lt;div class="mod-row"&gt;&lt;span class="mod-label"&gt;统计安全&lt;/span&gt;&lt;span&gt;手术统计（柱状图/饼图） · 权限管理 · 水印保护 · 审核访问&lt;/span&gt;&lt;/div&gt;
+
+&lt;!-- ==================== FOOTER ==================== --&gt;
+&lt;div class="doc-footer"&gt;
+  &lt;p&gt;&lt;strong&gt;杭州泽进科技有限公司&lt;/strong&gt;&lt;/p&gt;
+  &lt;p&gt;手术麻醉信息系统产品优势说明 ·  2026年4月&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;/div&gt;&lt;!-- /.wrap --&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></main></body></html>
