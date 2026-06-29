@@ -4,6 +4,7 @@ import ProjectTrackerOverviewChart from './ProjectTrackerOverviewChart.vue'
 import ProjectTrackerTable from './ProjectTrackerTable.vue'
 import ProjectSummaryPanel from './ProjectSummaryPanel.vue'
 import ProjectDialogs from './ProjectDialogs.vue'
+import ProjectWeeklyProgressView from './ProjectWeeklyProgressView.vue'
 import { useProjectTrackerView } from '../composables/useProjectTrackerView'
 
 defineProps({
@@ -105,7 +106,13 @@ const {
     </el-card>
 
     <el-row :gutter="12" class="compact-project-row project-workbench-row">
-      <el-col :xs="24" :xl="14" class="project-workbench-col">
+      <template v-if="trackerSubView === 'weeklyProgress'">
+        <el-col :span="24" class="project-workbench-col">
+          <ProjectWeeklyProgressView :projects="viewProjects" />
+        </el-col>
+      </template>
+      <template v-else>
+        <el-col :xs="24" :xl="14" class="project-workbench-col">
         <ProjectTrackerOverviewChart :selected-project="selectedProject" />
         <ProjectTrackerTable
           class="project-tracker-list-panel"
@@ -134,6 +141,7 @@ const {
           @delete-progress="onDeleteProgress"
         />
       </el-col>
+      </template>
     </el-row>
 
     <ProjectDialogs

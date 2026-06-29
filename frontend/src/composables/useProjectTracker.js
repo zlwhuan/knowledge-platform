@@ -63,6 +63,7 @@ export function useProjectTracker(options = {}) {
     { key: 'presales', label: '售前', desc: '前期方案支撑与投标协同' },
     { key: 'deliveryOps', label: '实施运维', desc: '实施交付、验收结算、售后维保' },
     { key: 'finance', label: '财务', desc: '合同金额、回款、结算跟踪' },
+    { key: 'weeklyProgress', label: '周进度', desc: '按周查看所有项目进度记录' },
   ]
 
   const selectedProject = computed(() => projects.value.find((item) => item.id === selectedProjectId.value) || null)
