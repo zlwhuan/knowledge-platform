@@ -88,37 +88,6 @@ export function useShellNavigation({
     trainingMenuOpen.value = false
   }
 
-  function setCurrentView(view) {
-    currentView.value = view
-    syncRoute(view)
-    if (view === 'home') {
-      closeAllSubmenus()
-      return
-    }
-    if (view === 'library' || view === 'compose' || view === 'attachment-management') {
-      libraryMenuOpen.value = true
-      projectMenuOpen.value = false
-      systemMenuOpen.value = false
-      if (view === 'library') openAllLibrary()
-      return
-    }
-    if (String(view).startsWith('project')) {
-      libraryMenuOpen.value = false
-      projectMenuOpen.value = true
-      systemMenuOpen.value = false
-      return
-    }
-    if (view === 'customers') {
-      libraryMenuOpen.value = false
-      projectMenuOpen.value = false
-      systemMenuOpen.value = false
-      return
-    }
-    libraryMenuOpen.value = false
-    projectMenuOpen.value = false
-    systemMenuOpen.value = true
-  }
-
   function openProjectView(view) {
     currentView.value = view
     syncRoute(view)
