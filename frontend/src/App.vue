@@ -685,7 +685,12 @@ function ensureDefaultLibraryTreeState() {
 }
 
 async function bootstrap() {
-  await Promise.all([loadProjectDashboard(), loadProjects(), loadCategories(), loadItems(), loadUsers(), loadRolePermissions(), loadCustomers(), loadDictionaries()])
+  const isAdmin = auth.user?.role === 'ADMIN'
+  await Promise.all([
+    loadProjectDashboard(), loadProjects(), loadCategories(),
+    loadItems(), loadCustomers(), loadDictionaries(),
+    ...(isAdmin ? [loadUsers(), loadRolePermissions()] : []),
+  ])
   ensureDefaultLibraryTreeState()
   const activeId = libraryFilters.categoryId || selectedCategoryId.value
   if (activeId) expandParentChain(activeId)

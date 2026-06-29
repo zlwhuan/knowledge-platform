@@ -45,7 +45,7 @@ export function attachAuthGuard(onAuthExpired) {
     (error) => {
       const status = error?.response?.status
       const message = error?.response?.data?.message || error?.message
-      if (status === 401 || status === 403 || isAuthExpiredMessage(message)) {
+      if (status === 401 || isAuthExpiredMessage(message)) {
         notifyAuthExpired(onAuthExpired, message)
       }
       return Promise.reject(error)
