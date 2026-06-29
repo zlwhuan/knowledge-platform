@@ -37,6 +37,7 @@ const emit = defineEmits([
   'page-change',
   'size-change',
   'trigger-import',
+  'export-items',
 ])
 
 let autoFilterTimer = null
@@ -129,6 +130,7 @@ onBeforeUnmount(() => {
             <el-button v-if="canEditContent" @click="emit('open-batch-edit-dialog')">批量编辑</el-button>
             <el-button @click="emit('load-items')">刷新列表</el-button>
             <el-button @click="emit('trigger-import')">导入Excel</el-button>
+            <el-button @click="emit('export-items')">导出Excel</el-button>
             <el-button v-if="canDeleteContent" type="danger" plain @click="emit('bulk-delete-items')">批量删除</el-button>
           </div>
         </div>
@@ -187,6 +189,7 @@ onBeforeUnmount(() => {
           </template>
         </el-table-column>
       </el-table>
+      <el-empty v-if="!loading && !filteredItems.length" description="暂无知识条目，点击右上角新建" />
       <div class="library-pagination" style="margin-top: 16px; display: flex; justify-content: flex-end;">
         <el-pagination
           v-if="libraryTotal > 0"

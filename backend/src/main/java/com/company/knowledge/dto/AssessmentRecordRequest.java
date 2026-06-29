@@ -1,6 +1,7 @@
 package com.company.knowledge.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class AssessmentRecordRequest {
@@ -10,7 +11,7 @@ public class AssessmentRecordRequest {
 
     private String assessmentType;
 
-    @NotBlank(message = "考核时间不能为空")
+    @NotNull(message = "考核时间不能为空")
     private LocalDateTime assessmentDate;
 
     private String assessorIds;

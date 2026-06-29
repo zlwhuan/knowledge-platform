@@ -1,18 +1,27 @@
 package com.company.knowledge.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class CustomerCompanyRequest {
     @NotBlank
+    @Size(max = 200)
     private String name;
+    @Size(max = 100)
     private String shortName;
     private String industry;
     private String customerType;
     private String level;
     private String region;
+    @Size(max = 300)
     private String address;
+    @Size(max = 100)
     private String website;
+    @Pattern(regexp = "^$|^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String mainPhone;
+    @Email(message = "邮箱格式不正确")
     private String email;
     private String ownerName;
     private String source;

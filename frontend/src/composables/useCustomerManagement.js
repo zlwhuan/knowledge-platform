@@ -93,19 +93,29 @@ export function useCustomerManagement({ confirmDelete } = {}) {
 
   const customers = ref([])
   const selectedCustomerId = ref(null)
+  const customerPage = ref(1)
+  const customerPageSize = ref(20)
+  const customerTotal = ref(0)
+  const customerPages = ref(0)
   const customerFilters = reactive(createDefaultCustomerFilters())
   const customerForm = reactive(createDefaultCustomerForm())
   const contactForm = reactive(createDefaultContactForm())
   const followupForm = reactive(createDefaultFollowupForm())
 
-  const selectedCustomer = computed(() => customers.value.find((item) => item.id === selectedCustomerId.value) || null)
+  const selectedCustomer = computed(() => {
+    if (selectedCustomerDetail.value && selectedCustomerDetail.value.id === selectedCustomerId.value) {
+      return selectedCustomerDetail.value
+    }
+    return customers.value.find((item) => item.id === selectedCustomerId.value) || null
+  })
+  const selectedCustomerDetail = ref(null)
   const contacts = computed(() => {
-    const all = selectedCustomer.value?.contacts || []
+    const all = selectedCustomerDetail.value?.contacts || selectedCustomer.value?.contacts || []
     if (!customerFilters.decisionLevel) return all
     return all.filter((item) => item.decisionLevel === customerFilters.decisionLevel)
   })
   const followups = computed(() => {
-    const items = selectedCustomer.value?.followups || []
+    const items = selectedCustomerDetail.value?.followups || selectedCustomer.value?.followups || []
     return [...items].sort((a, b) => {
       const timeA = new Date(a?.followupTime || a?.createdAt || 0).getTime()
       const timeB = new Date(b?.followupTime || b?.createdAt || 0).getTime()
@@ -125,26 +135,56 @@ export function useCustomerManagement({ confirmDelete } = {}) {
   async function loadCustomers(preferredId = null) {
     loading.value = true
     try {
-      const params = {}
+      const params = { page: customerPage.value, size: customerPageSize.value }
       if (customerFilters.keyword) params.keyword = customerFilters.keyword
       if (customerFilters.ownerName) params.ownerName = customerFilters.ownerName
       if (customerFilters.status) params.status = customerFilters.status
       if (customerFilters.level) params.level = customerFilters.level
       if (customerFilters.region) params.region = customerFilters.region
-      const { data } = await api.get('/customers', { params })
+      const { data } = await api.get('/customers/paged', { params })
       customers.value = data.data || []
+      customerTotal.value = data.total || 0
+      customerPages.value = data.pages || 0
       const targetId = preferredId ?? selectedCustomerId.value ?? customers.value[0]?.id ?? null
       selectedCustomerId.value = customers.value.find((item) => item.id === targetId)?.id || customers.value[0]?.id || null
+      if (selectedCustomerId.value) await loadCustomerDetail(selectedCustomerId.value)
     } catch {
       customers.value = []
       selectedCustomerId.value = null
+      customerTotal.value = 0
+      customerPages.value = 0
     } finally {
       loading.value = false
     }
   }
 
+  function changeCustomerPage(page) {
+    customerPage.value = page
+    loadCustomers()
+  }
+
+  function changeCustomerSize(size) {
+    customerPageSize.value = size
+    customerPage.value = 1
+    loadCustomers()
+  }
+
   function selectCustomer(row) {
-    if (row?.id) selectedCustomerId.value = row.id
+    if (row?.id) {
+      selectedCustomerId.value = row.id
+      loadCustomerDetail(row.id)
+    }
+  }
+
+  async function loadCustomerDetail(id) {
+    try {
+      const { data } = await api.get(`/customers/${id}`)
+      const detail = data.data
+      if (!detail) return
+      selectedCustomerDetail.value = detail
+    } catch {
+      selectedCustomerDetail.value = null
+    }
   }
 
   function resetCustomerForm() { Object.assign(customerForm, createDefaultCustomerForm()) }
@@ -236,6 +276,7 @@ export function useCustomerManagement({ confirmDelete } = {}) {
       const request = editing ? api.put(`/customers/contacts/${contactForm.id}`, payload) : api.post(`/customers/${customerId}/contacts`, payload)
       await request
       closeContactDialog(); await loadCustomers(customerId)
+      await loadCustomerDetail(customerId)
       showToast(editing ? '联系人已更新' : '联系人已创建')
     } catch (error) { showToast(error?.response?.data?.message || '联系人保存失败', 'error') }
     finally { contactSaving.value = false }
@@ -247,6 +288,7 @@ export function useCustomerManagement({ confirmDelete } = {}) {
     try {
       await api.delete(`/customers/contacts/${contact.id}`)
       await loadCustomers(selectedCustomer.value?.id)
+      await loadCustomerDetail(selectedCustomer.value?.id)
       showToast('联系人已删除')
     } catch (error) { showToast(error?.response?.data?.message || '联系人删除失败', 'error') }
   }
@@ -262,6 +304,7 @@ export function useCustomerManagement({ confirmDelete } = {}) {
       const request = editing ? api.put(`/customers/followups/${followupForm.id}`, payload) : api.post(`/customers/${customerId}/followups`, payload)
       await request
       closeFollowupDialog(); await loadCustomers(customerId)
+      await loadCustomerDetail(customerId)
       showToast(editing ? '跟进记录已更新' : '跟进记录已创建')
     } catch (error) { showToast(error?.response?.data?.message || '跟进记录保存失败', 'error') }
     finally { followupSaving.value = false }
@@ -273,12 +316,14 @@ export function useCustomerManagement({ confirmDelete } = {}) {
     try {
       await api.delete(`/customers/followups/${followup.id}`)
       await loadCustomers(selectedCustomer.value?.id)
+      await loadCustomerDetail(selectedCustomer.value?.id)
       showToast('跟进记录已删除')
     } catch (error) { showToast(error?.response?.data?.message || '跟进记录删除失败', 'error') }
   }
 
   function resetCustomerFilters() {
     Object.assign(customerFilters, createDefaultCustomerFilters())
+    customerPage.value = 1
     loadCustomers(selectedCustomerId.value)
   }
 
@@ -287,7 +332,8 @@ export function useCustomerManagement({ confirmDelete } = {}) {
     customerDialogOpen, contactDialogOpen, followupDialogOpen,
     customers, selectedCustomer, contacts, followups,
     customerFilters, customerForm, contactForm, followupForm,
-    loadCustomers, selectCustomer,
+    customerPage, customerPageSize, customerTotal, customerPages,
+    loadCustomers, selectCustomer, changeCustomerPage, changeCustomerSize,
     openCustomerDialog, openContactDialog, openFollowupDialog,
     closeCustomerDialog, closeContactDialog, closeFollowupDialog,
     saveCustomer, deleteCustomer, saveContact, deleteContact, saveFollowup, deleteFollowup,

@@ -1,6 +1,7 @@
 package com.company.knowledge.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class TrainingRecordRequest {
@@ -10,7 +11,7 @@ public class TrainingRecordRequest {
 
     private String content;
 
-    @NotBlank(message = "培训时间不能为空")
+    @NotNull(message = "培训时间不能为空")
     private LocalDateTime trainingDate;
 
     private String trainingType;

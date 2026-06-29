@@ -9,6 +9,7 @@ import {
   CUSTOMER_SOURCE_OPTIONS,
   CUSTOMER_STAGE_OPTIONS,
   CUSTOMER_STATUS_OPTIONS,
+  CUSTOMER_TYPE_OPTIONS,
   FOLLOWUP_RESULT_OPTIONS,
   FOLLOWUP_TYPE_OPTIONS,
 } from '../constants/customerOptions'
@@ -31,6 +32,9 @@ const props = defineProps({
   followupSaving: { type: Boolean, default: false },
   dictionaryOptions: { type: Object, default: () => ({}) },
   projects: { type: Array, default: () => [] },
+  customerPage: { type: Number, default: 1 },
+  customerPageSize: { type: Number, default: 20 },
+  customerTotal: { type: Number, default: 0 },
 })
 
 const relatedProjects = computed(() => {
@@ -49,6 +53,7 @@ const emit = defineEmits([
   'filter', 'reset-filters', 'select-customer', 'open-customer', 'delete-customer',
   'open-contact', 'delete-contact', 'save-customer', 'close-customer', 'save-contact', 'close-contact',
   'open-followup', 'delete-followup', 'save-followup', 'close-followup',
+  'page-change', 'size-change',
 ])
 
 function healthTagType(level) {
@@ -132,7 +137,7 @@ function followupStatus(dateText) {
 
       <el-row :gutter="12">
         <el-col :xs="24" :lg="15">
-          <el-table :data="props.customers" v-loading="props.loading" highlight-current-row row-key="id" :max-height="620" @current-change="emit('select-customer', $event)">
+          <el-table :data="props.customers" v-loading="props.loading" highlight-current-row row-key="id" :max-height="620" @current-change="emit('select-customer', $event)" empty-text=" ">
             <el-table-column prop="name" label="客户公司" min-width="170" show-overflow-tooltip />
             <el-table-column prop="industry" label="行业" width="90" />
             <el-table-column prop="customerType" label="客户类型" min-width="110" show-overflow-tooltip />
@@ -152,10 +157,23 @@ function followupStatus(dateText) {
               <template #default="{ row }">
                 <el-button text type="primary" @click="emit('open-followup', { customerId: row.id })">跟进</el-button>
                 <el-button text type="primary" @click="emit('open-customer', row)">编辑</el-button>
-                <el-button text type="danger" @click="emit('delete-customer', row)">删</el-button>
+                <el-button text type="danger" @click="emit('delete-customer', row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
+          <el-empty v-if="!props.loading && !props.customers.length" description="暂无客户数据" />
+          <div v-if="props.customerTotal > 0" style="display:flex;justify-content:flex-end;padding:12px 0 0">
+            <el-pagination
+              background
+              layout="total, sizes, prev, pager, next"
+              :total="props.customerTotal"
+              :current-page="props.customerPage"
+              :page-size="props.customerPageSize"
+              :page-sizes="[10, 20, 50, 100]"
+              @current-change="emit('page-change', $event)"
+              @size-change="emit('size-change', $event)"
+            />
+          </div>
         </el-col>
 
         <el-col :xs="24" :lg="9">
@@ -183,8 +201,8 @@ function followupStatus(dateText) {
               </el-table-column>
               <el-table-column label="操作" width="90" fixed="right">
                 <template #default="{ row }">
-                  <el-button text type="primary" @click="emit('open-contact', row)">编</el-button>
-                  <el-button text type="danger" @click="emit('delete-contact', row)">删</el-button>
+                  <el-button text type="primary" @click="emit('open-contact', row)">编辑</el-button>
+                  <el-button text type="danger" @click="emit('delete-contact', row)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -211,8 +229,8 @@ function followupStatus(dateText) {
                     </div>
                   </div>
                   <div>
-                    <el-button text type="primary" @click="emit('open-followup', item)">编</el-button>
-                    <el-button text type="danger" @click="emit('delete-followup', item)">删</el-button>
+                    <el-button text type="primary" @click="emit('open-followup', item)">编辑</el-button>
+                    <el-button text type="danger" @click="emit('delete-followup', item)">删除</el-button>
                   </div>
                 </div>
               </el-timeline-item>
@@ -252,6 +270,7 @@ function followupStatus(dateText) {
           <el-col :span="12"><el-form-item label="负责人"><el-input v-model="props.customerForm.ownerName" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="联系电话"><el-input v-model="props.customerForm.mainPhone" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="邮箱"><el-input v-model="props.customerForm.email" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="网站"><el-input v-model="props.customerForm.website" placeholder="https://..." /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="来源"><el-select v-model="props.customerForm.source" placeholder="请选择"><el-option v-for="item in optionValues('customerSource', CUSTOMER_SOURCE_OPTIONS)" :key="item" :label="item" :value="item" /></el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="状态"><el-select v-model="props.customerForm.status" placeholder="请选择"><el-option v-for="item in optionValues('customerStatus', CUSTOMER_STATUS_OPTIONS)" :key="item" :label="item" :value="item" /></el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="合作阶段"><el-select v-model="props.customerForm.cooperationStage" placeholder="请选择"><el-option v-for="item in optionValues('customerStage', CUSTOMER_STAGE_OPTIONS)" :key="item" :label="item" :value="item" /></el-select></el-form-item></el-col>
@@ -278,6 +297,7 @@ function followupStatus(dateText) {
           <el-col :span="12"><el-form-item label="办公电话"><el-input v-model="props.contactForm.officePhone" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="邮箱"><el-input v-model="props.contactForm.email" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="微信"><el-input v-model="props.contactForm.wechat" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="QQ"><el-input v-model="props.contactForm.qq" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="备注"><el-input v-model="props.contactForm.notes" type="textarea" :rows="3" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="主要联系人"><el-switch v-model="props.contactForm.primaryContact" /></el-form-item></el-col>
         </el-row>
@@ -294,6 +314,7 @@ function followupStatus(dateText) {
           <el-col :span="12"><el-form-item label="跟进类型" required><el-select v-model="props.followupForm.followupType"><el-option v-for="item in optionValues('followupType', FOLLOWUP_TYPE_OPTIONS)" :key="item" :label="item" :value="item" /></el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="结果等级"><el-select v-model="props.followupForm.resultLevel"><el-option v-for="item in optionValues('followupResult', FOLLOWUP_RESULT_OPTIONS)" :key="item" :label="item" :value="item" /></el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="负责人"><el-input v-model="props.followupForm.ownerName" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="本次跟进时间"><el-date-picker v-model="props.followupForm.followupTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="下次跟进"><el-date-picker v-model="props.followupForm.nextFollowupDate" type="date" value-format="YYYY-MM-DD" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="跟进内容" required><el-input v-model="props.followupForm.content" type="textarea" :rows="4" /></el-form-item></el-col>
         </el-row>

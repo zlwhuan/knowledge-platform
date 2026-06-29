@@ -1,0 +1,8 @@
+uploads/
+previews/
+target/
+node_modules/
+dist/
+*.class
+*.jar
+*.log

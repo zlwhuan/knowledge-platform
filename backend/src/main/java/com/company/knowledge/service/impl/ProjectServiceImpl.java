@@ -270,6 +270,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private void apply(Project project, ProjectRequest request, String operatorName) {
+        if (request.getContractAmount() != null && request.getReceivedAmount() != null
+                && request.getReceivedAmount().compareTo(request.getContractAmount()) > 0) {
+            throw new IllegalArgumentException("回款金额不能大于合同金额");
+        }
+        if (request.getStartDate() != null && request.getPlannedEndDate() != null
+                && request.getStartDate().isAfter(request.getPlannedEndDate())) {
+            throw new IllegalArgumentException("计划结束日期不能早于开始日期");
+        }
         project.setName(request.getName());
         project.setCustomerName(request.getCustomerName());
         project.setStage(request.getStage());

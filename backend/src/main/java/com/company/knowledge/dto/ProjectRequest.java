@@ -1,24 +1,33 @@
 package com.company.knowledge.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class ProjectRequest {
     @NotBlank
+    @Size(max = 200)
     private String name;
     @NotBlank
+    @Size(max = 200)
     private String customerName;
     @NotBlank
+    @Pattern(regexp = "商机立项|合同执行|实施交付|验收结算|售后维保", message = "项目阶段不合法")
     private String stage;
     @NotBlank
+    @Pattern(regexp = "进行中|已完成|暂停", message = "项目状态不合法")
     private String status;
     @Min(0)
     @Max(100)
     private Integer progress = 0;
+    @DecimalMin(value = "0", message = "合同金额不能为负数")
     private BigDecimal contractAmount = BigDecimal.ZERO;
+    @DecimalMin(value = "0", message = "回款金额不能为负数")
     private BigDecimal receivedAmount = BigDecimal.ZERO;
     private LocalDate startDate;
     private LocalDate plannedEndDate;
@@ -29,6 +38,7 @@ public class ProjectRequest {
     private String implementationOwner;
     private String documentOwner;
     private String serviceOwner;
+    @Pattern(regexp = "^$|^低$|^中$|^高$", message = "风险等级不合法")
     private String riskLevel;
     private String contractStatus;
     private String paymentStatus;

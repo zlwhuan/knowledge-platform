@@ -42,9 +42,9 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview', 'delete-a
         <el-descriptions-item label="更新时间">{{ formatDateTime(item.updatedAt || item.createdAt) }}</el-descriptions-item>
         <el-descriptions-item label="分类">{{ item.categoryName || '未分类' }}</el-descriptions-item>
       </el-descriptions>
-      <el-card class="attachment-card" shadow="never">
+      <el-card v-if="item.attachments?.length" class="attachment-card" shadow="never">
         <div class="card-subtitle">附件</div>
-        <div v-if="item.attachments?.length" class="attachment-list">
+        <div class="attachment-list">
           <div v-for="attachment in item.attachments" :key="attachment.id" class="attachment-row">
             <div>
               <strong>{{ attachment.originalFileName }}</strong>
@@ -57,7 +57,6 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview', 'delete-a
             </el-space>
           </div>
         </div>
-        <el-empty v-else description="暂无附件" />
       </el-card>
       <el-card shadow="never" class="markdown-card dialog-markdown-card">
         <div class="card-subtitle">正文内容</div>

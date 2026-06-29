@@ -3,17 +3,21 @@ package com.company.knowledge.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ProjectProgressRecordRequest {
     @NotBlank
+    @Pattern(regexp = "商机立项|合同执行|实施交付|验收结算|售后维保", message = "项目阶段不合法")
     private String stage;
     @NotBlank
+    @Pattern(regexp = "进行中|已完成|暂停", message = "项目状态不合法")
     private String status;
     @Min(0)
     @Max(100)
     private Integer progress = 0;
+    @Pattern(regexp = "^$|^低$|^中$|^高$", message = "风险等级不合法")
     private String riskLevel;
     @NotBlank
     private String summary;

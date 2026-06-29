@@ -103,6 +103,8 @@ const emit = defineEmits([
   'delete-followup',
   'save-followup',
   'close-followup',
+  'customer-page-change',
+  'customer-size-change',
   'edit-dictionary',
   'reset-dictionary',
   'save-dictionary',
@@ -110,6 +112,7 @@ const emit = defineEmits([
   'page-change',
   'size-change',
   'trigger-import',
+  'export-items',
 ])
 </script>
 
@@ -150,6 +153,7 @@ const emit = defineEmits([
       @page-change="emit('page-change', $event)"
       @size-change="emit('size-change', $event)"
       @trigger-import="emit('trigger-import')"
+      @export-items="emit('export-items')"
     />
 
     <LibraryComposeView
@@ -208,6 +212,8 @@ const emit = defineEmits([
       @delete-followup="emit('delete-followup', $event)"
       @save-followup="emit('save-followup')"
       @close-followup="emit('close-followup')"
+      @page-change="emit('customer-page-change', $event)"
+      @size-change="emit('customer-size-change', $event)"
     />
 
     <CategoryManagementView

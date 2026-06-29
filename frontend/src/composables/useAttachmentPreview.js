@@ -58,7 +58,7 @@ export function useAttachmentPreview({ api, apiBaseUrl, showToast, formatDateTim
     if (preview.kind === 'onlyoffice') return 'OnlyOffice'
     if (preview.kind === 'pdf') return 'PDF 预览'
     if (['office-word', 'office-sheet', 'office-slide'].includes(preview.kind)) return 'Office 转换预览'
-    if (['markdown', 'text'].includes(preview.kind)) return '文本预览'
+    if (['markdown', 'text', 'html'].includes(preview.kind)) return 'HTML 预览'
     if (['image', 'video', 'audio'].includes(preview.kind)) return '原文件预览'
     return '附件预览'
   })
@@ -67,7 +67,7 @@ export function useAttachmentPreview({ api, apiBaseUrl, showToast, formatDateTim
     if (preview.kind === 'pdf') return '当前文件已转换为 PDF 预览，适合快速核对版式与分页。'
     if (preview.kind === 'onlyoffice') return '当前文件通过 OnlyOffice 在线预览。'
     if (['office-word', 'office-sheet', 'office-slide'].includes(preview.kind)) return '当前文件已转换为网页可预览内容。'
-    if (['markdown', 'text'].includes(preview.kind)) return '当前文件以文本方式在线展示。'
+    if (['markdown', 'text', 'html'].includes(preview.kind)) return '当前文件以文本方式在线展示。'
     if (['image', 'video', 'audio'].includes(preview.kind)) return '当前文件使用原始媒体方式预览。'
     return '当前文件暂不支持复杂预览，可直接下载查看。'
   })

@@ -697,12 +697,12 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
         </el-select>
       </el-form-item>
       <el-form-item label="当前状态" required :error="fieldError('projectProgress', forms.projectProgressForm.status, '当前状态')">
-        <el-select v-model="forms.projectProgressForm.status" @change="onProgressStatusChange">
+        <el-select v-model="forms.projectProgressForm.status">
           <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="完成进度">
-        <el-input-number v-model="forms.projectProgressForm.progress" :min="0" :max="100" :step="5" @change="onProgressValueChange" />
+        <el-input-number v-model="forms.projectProgressForm.progress" :min="0" :max="100" :step="5" />
       </el-form-item>
       <el-form-item label="风险等级">
         <el-select v-model="forms.projectProgressForm.riskLevel">

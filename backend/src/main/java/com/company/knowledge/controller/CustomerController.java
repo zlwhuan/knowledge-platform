@@ -47,6 +47,26 @@ public class CustomerController {
         return ApiResponse.ok(customerService.list(keyword, ownerName, status, level, region));
     }
 
+    @GetMapping("/paged")
+    public ApiResponse<List<CustomerCompanyResponse>> listPaged(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String ownerName,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String region,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        java.util.Map<String, Object> result = customerService.listPaged(keyword, ownerName, status, level, region, page, size);
+        return ApiResponse.paged(
+                (java.util.List<CustomerCompanyResponse>) result.get("items"),
+                (long) result.get("total"),
+                (int) result.get("page"),
+                (int) result.get("size"),
+                (int) result.get("pages")
+        );
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<CustomerCompanyResponse> get(@PathVariable Long id) {
         return ApiResponse.ok(customerService.get(id));

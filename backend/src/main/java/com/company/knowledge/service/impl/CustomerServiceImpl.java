@@ -14,9 +14,17 @@ import com.company.knowledge.repository.CustomerCompanyRepository;
 import com.company.knowledge.repository.CustomerContactRepository;
 import com.company.knowledge.repository.CustomerFollowupRepository;
 import com.company.knowledge.service.CustomerService;
+import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -48,6 +56,80 @@ public class CustomerServiceImpl implements CustomerService {
                 .filter(company -> equalsValue(company.getRegion(), region))
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    public Map<String, Object> listPaged(String keyword, String ownerName, String status, String level, String region, int page, int size) {
+        Specification<CustomerCompany> spec = buildSpecification(keyword, ownerName, status, level, region);
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), Math.max(1, Math.min(size, 100)));
+        Page<CustomerCompany> resultPage = customerCompanyRepository.findAll(spec, pageable);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("items", resultPage.getContent().stream().map(this::toListItem).toList());
+        result.put("total", resultPage.getTotalElements());
+        result.put("page", page);
+        result.put("size", size);
+        result.put("pages", resultPage.getTotalPages());
+        return result;
+    }
+
+    private Specification<CustomerCompany> buildSpecification(String keyword, String ownerName, String status, String level, String region) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.hasText(keyword)) {
+                String pattern = "%" + keyword.trim() + "%";
+                predicates.add(cb.or(
+                        cb.like(root.get("name"), pattern),
+                        cb.like(root.get("shortName"), pattern),
+                        cb.like(root.get("industry"), pattern),
+                        cb.like(root.get("tags"), pattern),
+                        cb.like(root.get("notes"), pattern)
+                ));
+            }
+            if (StringUtils.hasText(ownerName)) {
+                predicates.add(cb.like(root.get("ownerName"), "%" + ownerName.trim() + "%"));
+            }
+            if (StringUtils.hasText(status)) {
+                predicates.add(cb.equal(root.get("status"), status.trim()));
+            }
+            if (StringUtils.hasText(level)) {
+                predicates.add(cb.equal(root.get("level"), level.trim()));
+            }
+            if (StringUtils.hasText(region)) {
+                predicates.add(cb.equal(root.get("region"), region.trim()));
+            }
+            query.orderBy(cb.desc(root.get("updatedAt")));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private CustomerCompanyResponse toListItem(CustomerCompany company) {
+        return new CustomerCompanyResponse(
+                company.getId(),
+                company.getName(),
+                company.getShortName(),
+                company.getIndustry(),
+                company.getCustomerType(),
+                company.getLevel(),
+                company.getRegion(),
+                company.getAddress(),
+                company.getWebsite(),
+                company.getMainPhone(),
+                company.getEmail(),
+                company.getOwnerName(),
+                company.getSource(),
+                company.getStatus(),
+                company.getCooperationStage(),
+                company.getTags(),
+                company.getNotes(),
+                company.getCreatedBy(),
+                company.getUpdatedBy(),
+                company.getCreatedAt(),
+                company.getUpdatedAt(),
+                null,
+                null,
+                List.of(),
+                List.of()
+        );
     }
 
     @Override

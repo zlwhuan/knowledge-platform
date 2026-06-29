@@ -1,15 +1,23 @@
 package com.company.knowledge.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class CustomerContactRequest {
     @NotBlank
+    @Size(max = 100)
     private String name;
+    @Size(max = 100)
     private String position;
+    @Size(max = 100)
     private String department;
     private String gender;
+    @Pattern(regexp = "^$|^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String mobile;
     private String officePhone;
+    @Email(message = "邮箱格式不正确")
     private String email;
     private String wechat;
     private String qq;

@@ -183,7 +183,7 @@ public class PreviewServiceImpl implements PreviewService {
                 case "office-slide" -> Files.writeString(target, wrapHtml(extractSlide(source), false), StandardCharsets.UTF_8);
                 case "html" -> {
                     String htmlContent = Files.readString(source, StandardCharsets.UTF_8);
-                    Files.writeString(target, htmlContent, StandardCharsets.UTF_8);
+                    Files.writeString(target, fixRelativePaths(htmlContent, attachmentId), StandardCharsets.UTF_8);
                 }
                 case "markdown" -> Files.writeString(target, wrapHtml(renderPlainText(Files.readString(source)), false), StandardCharsets.UTF_8);
                 case "text" -> Files.writeString(target, wrapHtml(renderTextByExtension(source), source.toString().toLowerCase().endsWith(".csv")), StandardCharsets.UTF_8);
@@ -431,6 +431,15 @@ public class PreviewServiceImpl implements PreviewService {
 
     private String escape(String value) {
         return value == null ? "" : value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private String fixRelativePaths(String htmlContent, Long attachmentId) {
+        // 如果 HTML 内容已经有完整的 HTML 结构，直接返回
+        if (htmlContent.toLowerCase().contains("<html")) {
+            return htmlContent;
+        }
+        // 如果没有完整的 HTML 结构，包装在一个基本的 HTML 页面中
+        return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head><body>" + htmlContent + "</body></html>";
     }
 
     private record PreviewResolution(String kind, Path path, String contentType, String message, String externalUrl) {

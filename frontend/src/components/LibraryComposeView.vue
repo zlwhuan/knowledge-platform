@@ -1,6 +1,6 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { api } from '../services/api'
@@ -17,11 +17,51 @@ const props = defineProps({
   dictionaryOptions: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['back', 'save', 'files-change', 'remove-queued-file', 'open-preview', 'remove-attachment'])
+const emit = defineEmits(['back', 'save', 'files-change', 'remove-queued-file', 'open-preview', 'remove-attachment', 'dirty-change'])
 const fileInputRef = ref(null)
 const videoInputRef = ref(null)
 const editorTheme = ref('light')
 const attachmentDropActive = ref(false)
+const isDirty = ref(false)
+const beforeUnloadHandler = (e) => {
+  if (isDirty.value) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+
+function markDirty() {
+  if (!isDirty.value) {
+    isDirty.value = true
+    emit('dirty-change', true)
+  }
+}
+
+watch(
+  () => [props.form.title, props.form.type, props.form.categoryId, props.form.tags, props.form.source, props.form.summary, props.form.contentMarkdown, props.form.projectId],
+  () => markDirty(),
+  { deep: false },
+)
+
+onMounted(() => {
+  window.addEventListener('beforeunload', beforeUnloadHandler)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', beforeUnloadHandler)
+  document.body.classList.remove('attachment-preview-open')
+})
+
+async function handleBack() {
+  if (isDirty.value) {
+    try {
+      await ElMessageBox.confirm('当前内容尚未保存，确定要离开吗？', '未保存的更改', { type: 'warning', confirmButtonText: '离开', cancelButtonText: '留下' })
+    } catch { return }
+  }
+  isDirty.value = false
+  emit('dirty-change', false)
+  emit('back')
+}
 const editorToolbars = [
   'bold', 'underline', 'italic', '-',
   'title', 'strikeThrough', 'sub', 'sup', 'quote', 'unorderedList', 'orderedList', 'task', '-',
@@ -40,11 +80,6 @@ watch(
   },
   { immediate: true },
 )
-
-onBeforeUnmount(() => {
-  if (typeof document === 'undefined') return
-  document.body.classList.remove('attachment-preview-open')
-})
 
 function pickFiles() {
   fileInputRef.value?.click()
@@ -145,8 +180,8 @@ async function onVideoFileChange(event) {
             <p>支持分类、关联项目、正文编辑和附件上传</p>
           </div>
           <div class="toolbar-actions">
-            <el-button @click="emit('back')">返回知识库</el-button>
-            <el-button type="primary" :loading="saving" @click="emit('save')">保存资料</el-button>
+            <el-button @click="handleBack">返回知识库</el-button>
+            <el-button type="primary" :loading="saving" @click="isDirty = false; emit('save')">保存资料</el-button>
           </div>
         </div>
       </template>

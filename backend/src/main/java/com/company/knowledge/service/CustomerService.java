@@ -7,9 +7,11 @@ import com.company.knowledge.dto.CustomerContactResponse;
 import com.company.knowledge.dto.CustomerFollowupRequest;
 import com.company.knowledge.dto.CustomerFollowupResponse;
 import java.util.List;
+import java.util.Map;
 
 public interface CustomerService {
     List<CustomerCompanyResponse> list(String keyword, String ownerName, String status, String level, String region);
+    Map<String, Object> listPaged(String keyword, String ownerName, String status, String level, String region, int page, int size);
     CustomerCompanyResponse get(Long id);
     CustomerCompanyResponse create(CustomerCompanyRequest request, String operatorName);
     CustomerCompanyResponse update(Long id, CustomerCompanyRequest request, String operatorName);

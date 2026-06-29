@@ -45,6 +45,34 @@ function triggerImport() {
   importInputRef.value?.click()
 }
 
+function exportItems() {
+  const rows = filteredItems.value || []
+  if (!rows.length) return ElMessage({ message: '没有可导出的数据', type: 'warning', showClose: true })
+  const header = ['标题', '类型', '分类', '摘要', '标签', '来源', '上传人', '更新时间']
+  const csvRows = [header.join(',')]
+  rows.forEach((item) => {
+    csvRows.push([
+      `"${(item.title || '').replace(/"/g, '""')}"`,
+      `"${(item.type || '').replace(/"/g, '""')}"`,
+      `"${(item.categoryName || '').replace(/"/g, '""')}"`,
+      `"${(item.summary || '').replace(/"/g, '""')}"`,
+      `"${(item.tags || '').replace(/"/g, '""')}"`,
+      `"${(item.source || '').replace(/"/g, '""')}"`,
+      `"${(item.createdBy || '').replace(/"/g, '""')}"`,
+      `"${(item.updatedAt || item.createdAt || '').replace(/"/g, '""')}"`,
+    ].join(','))
+  })
+  const BOM = '\uFEFF'
+  const blob = new Blob([BOM + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `知识库导出_${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+  ElMessage({ message: `已导出 ${rows.length} 条数据`, type: 'success', showClose: true })
+}
+
 async function handleImport(event) {
   const file = event?.target?.files?.[0]
   if (!file) return
@@ -200,8 +228,13 @@ const {
   customerForm,
   contactForm,
   followupForm,
+  customerPage,
+  customerPageSize,
+  customerTotal,
   loadCustomers,
   selectCustomer,
+  changeCustomerPage,
+  changeCustomerSize,
   openCustomerDialog,
   openContactDialog,
   openFollowupDialog,
@@ -250,7 +283,7 @@ function formatFileSize(size) {
 }
 
 function isPreviewFrameKind(kind) {
-  return ['office-word', 'office-sheet', 'office-slide', 'markdown', 'text', 'pdf'].includes(kind)
+  return ['office-word', 'office-sheet', 'office-slide', 'markdown', 'text', 'html', 'pdf'].includes(kind)
 }
 
 const filteredItems = computed(() => {
@@ -806,6 +839,9 @@ onUnmounted(() => {
         customerSaving,
         contactSaving,
         followupSaving,
+        customerPage,
+        customerPageSize,
+        customerTotal,
         dictionaryOptions: {
           customerStatus: getOptions('customer_status').map((item) => item.itemValue),
           customerLevel: getOptions('customer_level').map((item) => item.itemValue),
@@ -842,6 +878,7 @@ onUnmounted(() => {
       @page-change="changePage"
       @size-change="(size) => { libraryPageSize = size; changePage(1) }"
       @trigger-import="triggerImport"
+      @export-items="exportItems"
       @update-library-quick-filter="updateLibraryQuickFilter"
       @toggle-select-all-displayed="toggleSelectAllDisplayed"
       @open-batch-edit-dialog="openBatchEditDialog"
@@ -882,7 +919,7 @@ onUnmounted(() => {
       @edit-user="editUser"
       @delete-user="deleteSystemUser"
       @save-role="saveSystemRole"
-      @filter-customers="() => loadCustomers(selectedCustomer?.id)"
+      @filter-customers="() => { customerPage = 1; loadCustomers(selectedCustomer?.id) }"
       @reset-customer-filters="resetCustomerFilters"
       @select-customer="selectCustomer"
       @open-customer="openCustomerDialog"
@@ -897,6 +934,8 @@ onUnmounted(() => {
       @delete-followup="deleteFollowup"
       @save-followup="saveFollowup"
       @close-followup="closeFollowupDialog"
+      @customer-page-change="changeCustomerPage"
+      @customer-size-change="changeCustomerSize"
       @edit-dictionary="editDictionaryItem"
       @reset-dictionary="resetDictionaryDraft"
       @save-dictionary="saveSystemDictionary"

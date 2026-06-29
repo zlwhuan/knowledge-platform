@@ -4,7 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from '../services/api'
 
 const props = defineProps({
-  auth: { type: Object, required: true },
+  auth: { type: Object, default: null },
 })
 
 const loading = ref(false)
@@ -111,6 +111,10 @@ async function handleSubmit() {
   }
   if (!formDialog.trainingDate) {
     ElMessage.warning('请选择培训时间')
+    return
+  }
+  if (!formDialog.trainingType) {
+    ElMessage.warning('请选择培训类型')
     return
   }
 
@@ -261,7 +265,7 @@ onMounted(() => {
         </template>
       </el-table-column>
     </el-table>
-
+    <el-empty v-if="!loading && !records.length" description="暂无培训记录" />
     <div class="pagination-wrapper">
       <el-pagination
         v-model:current-page="currentPage"

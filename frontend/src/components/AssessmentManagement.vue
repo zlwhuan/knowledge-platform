@@ -4,7 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from '../services/api'
 
 const props = defineProps({
-  auth: { type: Object, required: true },
+  auth: { type: Object, default: null },
 })
 
 const loading = ref(false)
@@ -139,6 +139,14 @@ async function handleSubmit() {
   }
   if (!formDialog.assessmentDate) {
     ElMessage.warning('请选择考核时间')
+    return
+  }
+  if (!formDialog.assessmentType) {
+    ElMessage.warning('请选择考核类型')
+    return
+  }
+  if (!formDialog.grade) {
+    ElMessage.warning('请选择考核等级')
     return
   }
 
@@ -309,7 +317,7 @@ onMounted(() => {
         </template>
       </el-table-column>
     </el-table>
-
+    <el-empty v-if="!loading && !records.length" description="暂无考核记录" />
     <div class="pagination-wrapper">
       <el-pagination
         v-model:current-page="currentPage"
