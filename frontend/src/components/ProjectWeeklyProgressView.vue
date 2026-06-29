@@ -151,19 +151,19 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
     </div>
 
     <div class="weekly-filter-bar">
-      <el-select v-model="filters.projectName" clearable filterable placeholder="项目名称" style="min-width: 160px">
+      <el-select v-model="filters.projectName" clearable filterable placeholder="项目名称" style="width: 140px">
         <el-option v-for="name in projectNameOptions" :key="`proj-${name}`" :label="name" :value="name" />
       </el-select>
-      <el-select v-model="filters.customerName" clearable filterable placeholder="客户名称" style="min-width: 160px">
+      <el-select v-model="filters.customerName" clearable filterable placeholder="客户名称" style="width: 140px">
         <el-option v-for="name in customerNameOptions" :key="`cust-${name}`" :label="name" :value="name" />
       </el-select>
-      <el-select v-model="filters.owner" clearable filterable placeholder="负责人" style="min-width: 140px">
+      <el-select v-model="filters.owner" clearable filterable placeholder="负责人" style="width: 120px">
         <el-option v-for="name in ownerOptions" :key="`owner-${name}`" :label="name" :value="name" />
       </el-select>
-      <el-select v-model="filters.status" clearable placeholder="项目状态" style="min-width: 130px">
+      <el-select v-model="filters.status" clearable placeholder="项目状态" style="width: 110px">
         <el-option v-for="item in projectStatusOptions" :key="`status-${item.value}`" :label="item.label" :value="item.value" />
       </el-select>
-      <el-select v-model="filters.riskLevel" clearable placeholder="风险等级" style="min-width: 130px">
+      <el-select v-model="filters.riskLevel" clearable placeholder="风险等级" style="width: 110px">
         <el-option v-for="item in projectRiskOptions" :key="`risk-${item.value}`" :label="item.label" :value="item.value" />
       </el-select>
       <el-button @click="resetFilters">重置</el-button>
@@ -233,7 +233,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: 10px 12px;
   background: #f5f7fa;
   border-radius: 6px;
