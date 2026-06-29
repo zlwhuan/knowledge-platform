@@ -71,7 +71,7 @@ const {
 
 <template>
   <section class="page-section project-tracker-page project-tracker-redesign">
-    <el-card shadow="never" class="panel-card project-summary-card">
+    <el-card v-if="trackerSubView !== 'weeklyProgress'" shadow="never" class="panel-card project-summary-card">
       <template #header>
         <div class="project-summary-header">
           <div class="project-summary-header-left">
