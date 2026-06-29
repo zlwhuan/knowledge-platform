@@ -103,6 +103,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private CustomerCompanyResponse toListItem(CustomerCompany company) {
+        List<CustomerContactResponse> contacts = customerContactRepository.findAllByCustomerIdOrderByPrimaryContactDescUpdatedAtDesc(company.getId())
+                .stream()
+                .map(this::toContactResponse)
+                .toList();
         return new CustomerCompanyResponse(
                 company.getId(),
                 company.getName(),
@@ -127,7 +131,7 @@ public class CustomerServiceImpl implements CustomerService {
                 company.getUpdatedAt(),
                 null,
                 null,
-                List.of(),
+                contacts,
                 List.of()
         );
     }
