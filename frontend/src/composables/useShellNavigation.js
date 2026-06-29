@@ -132,6 +132,7 @@ export function useShellNavigation({
       'project-delivery-ops': 'deliveryOps',
       'project-finance': 'finance',
       'project-gantt': 'gantt',
+      'project-weekly-progress': 'weeklyProgress',
     }
     switchTrackerSubView(mapping[view] || 'dashboard')
   }

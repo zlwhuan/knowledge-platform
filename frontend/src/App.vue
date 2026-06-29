@@ -127,6 +127,7 @@ const projectNavItems = [
   { key: 'project-delivery-ops', label: '实施运维', desc: '实施交付、验收结算、售后维保' },
   { key: 'project-finance', label: '财务', desc: '合同金额、回款与结算跟踪' },
   { key: 'project-gantt', label: '项目甘特', desc: '项目时间线可视化' },
+  { key: 'project-weekly-progress', label: '周进度', desc: '按周查看所有项目进度记录' },
 ]
 
 const systemNavItems = [
