@@ -1,9 +1,24 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import dayjs from 'dayjs'
+import {
+  projectStageOptions,
+  projectStatusOptions,
+  projectRiskOptions,
+} from '../composables/projectDialogOptions'
 
 const props = defineProps({
   projects: { type: Array, default: () => [] },
+  customers: { type: Array, default: () => [] },
+  users: { type: Array, default: () => [] },
+})
+
+const filters = reactive({
+  projectName: '',
+  customerName: '',
+  owner: '',
+  status: '',
+  riskLevel: '',
 })
 
 const currentWeekStart = ref(dayjs().startOf('week').add(1, 'day'))
@@ -14,16 +29,15 @@ const weekLabel = computed(() => {
   return `${start.format('YYYY-MM-DD')} ~ ${end.format('YYYY-MM-DD')}`
 })
 
-function prevWeek() {
-  currentWeekStart.value = currentWeekStart.value.subtract(7, 'day')
-}
-
-function nextWeek() {
-  currentWeekStart.value = currentWeekStart.value.add(7, 'day')
-}
-
-function goToThisWeek() {
-  currentWeekStart.value = dayjs().startOf('week').add(1, 'day')
+function prevWeek() { currentWeekStart.value = currentWeekStart.value.subtract(7, 'day') }
+function nextWeek() { currentWeekStart.value = currentWeekStart.value.add(7, 'day') }
+function goToThisWeek() { currentWeekStart.value = dayjs().startOf('week').add(1, 'day') }
+function resetFilters() {
+  filters.projectName = ''
+  filters.customerName = ''
+  filters.owner = ''
+  filters.status = ''
+  filters.riskLevel = ''
 }
 
 const weekDays = computed(() => {
@@ -39,11 +53,49 @@ const weekDays = computed(() => {
   return days
 })
 
+const projectNameOptions = computed(() => {
+  return [...new Set(props.projects.map(p => p.name).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+})
+
+const customerNameOptions = computed(() => {
+  const source = props.customers.length
+    ? props.customers.map(c => String(c?.name || '').trim()).filter(Boolean)
+    : props.projects.map(p => String(p?.customerName || '').trim()).filter(Boolean)
+  return [...new Set(source)].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+})
+
+const ownerOptions = computed(() => {
+  const userNames = props.users
+    .filter(u => u && u.enabled !== false)
+    .map(u => String(u.displayName || u.username || '').trim())
+    .filter(Boolean)
+  const fallbackNames = props.projects
+    .flatMap(p => [p.projectManager, p.salesOwner, p.implementationOwner, p.documentOwner, p.serviceOwner])
+    .map(n => String(n || '').trim())
+    .filter(Boolean)
+  const source = userNames.length ? userNames : fallbackNames
+  return [...new Set(source)].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+})
+
+const filteredProjects = computed(() => {
+  return props.projects.filter(p => {
+    if (filters.projectName && p.name !== filters.projectName) return false
+    if (filters.customerName && p.customerName !== filters.customerName) return false
+    if (filters.status && p.status !== filters.status) return false
+    if (filters.riskLevel && p.riskLevel !== filters.riskLevel) return false
+    if (filters.owner) {
+      const owners = [p.projectManager, p.salesOwner, p.implementationOwner, p.documentOwner, p.serviceOwner].map(n => String(n || '').trim())
+      if (!owners.includes(filters.owner)) return false
+    }
+    return true
+  })
+})
+
 const weeklyRecords = computed(() => {
   const start = currentWeekStart.value.startOf('day')
   const end = currentWeekStart.value.add(6, 'day').endOf('day')
   const result = []
-  for (const project of props.projects) {
+  for (const project of filteredProjects.value) {
     for (const record of project.progressRecords || []) {
       const t = dayjs(record.recordTime || record.createdAt)
       if (t.isBefore(start) || t.isAfter(end)) continue
@@ -53,9 +105,11 @@ const weeklyRecords = computed(() => {
         projectName: project.name,
         customerName: project.customerName,
         stage: project.stage,
+        status: project.status,
         projectProgress: project.progress,
         riskLevel: project.riskLevel,
         projectManager: project.projectManager,
+        ownerName: record.ownerName || project.projectManager || '--',
         weekDay: t.day() === 0 ? 6 : t.day() - 1,
         recordTimeFormatted: t.format('MM-DD HH:mm'),
       })
@@ -68,9 +122,7 @@ const weeklyRecords = computed(() => {
 const recordsByDay = computed(() => {
   const map = {}
   for (let i = 0; i < 7; i++) map[i] = []
-  for (const r of weeklyRecords.value) {
-    map[r.weekDay].push(r)
-  }
+  for (const r of weeklyRecords.value) map[r.weekDay].push(r)
   return map
 })
 
@@ -78,18 +130,8 @@ const totalRecords = computed(() => weeklyRecords.value.length)
 const projectsInvolved = computed(() => new Set(weeklyRecords.value.map(r => r.projectId)).size)
 const highRiskCount = computed(() => weeklyRecords.value.filter(r => r.riskLevel === '高').length)
 
-const statusColor = (status) => {
-  const map = { '进行中': '', '已暂停': 'warning', '已完成': 'success', '已取消': 'info' }
-  return map[status] || ''
-}
-const riskColor = (level) => {
-  const map = { '高': 'danger', '中': 'warning', '低': 'success' }
-  return map[level] || 'info'
-}
-const stageColor = (stage) => {
-  const map = { '商机立项': 'info', '合同执行': '', '实施交付': 'warning', '验收结算': 'success', '售后维保': '' }
-  return map[stage] || ''
-}
+const riskColor = (level) => ({ '高': 'danger', '中': 'warning', '低': 'success' })[level] || 'info'
+const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '实施交付': 'warning', '验收结算': 'success', '售后维保': '' })[stage] || ''
 </script>
 
 <template>
@@ -106,6 +148,25 @@ const stageColor = (stage) => {
         <el-tag>涉及项目 {{ projectsInvolved }}</el-tag>
         <el-tag v-if="highRiskCount > 0" type="danger">高风险 {{ highRiskCount }}</el-tag>
       </div>
+    </div>
+
+    <div class="weekly-filter-bar">
+      <el-select v-model="filters.projectName" clearable filterable placeholder="项目名称" style="min-width: 160px">
+        <el-option v-for="name in projectNameOptions" :key="`proj-${name}`" :label="name" :value="name" />
+      </el-select>
+      <el-select v-model="filters.customerName" clearable filterable placeholder="客户名称" style="min-width: 160px">
+        <el-option v-for="name in customerNameOptions" :key="`cust-${name}`" :label="name" :value="name" />
+      </el-select>
+      <el-select v-model="filters.owner" clearable filterable placeholder="负责人" style="min-width: 140px">
+        <el-option v-for="name in ownerOptions" :key="`owner-${name}`" :label="name" :value="name" />
+      </el-select>
+      <el-select v-model="filters.status" clearable placeholder="项目状态" style="min-width: 130px">
+        <el-option v-for="item in projectStatusOptions" :key="`status-${item.value}`" :label="item.label" :value="item.value" />
+      </el-select>
+      <el-select v-model="filters.riskLevel" clearable placeholder="风险等级" style="min-width: 130px">
+        <el-option v-for="item in projectRiskOptions" :key="`risk-${item.value}`" :label="item.label" :value="item.value" />
+      </el-select>
+      <el-button @click="resetFilters">重置</el-button>
     </div>
 
     <div v-if="weeklyRecords.length === 0" class="empty-state">
@@ -167,6 +228,15 @@ const stageColor = (stage) => {
   display: flex;
   gap: 6px;
   margin-left: auto;
+}
+.weekly-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
 }
 .empty-state {
   padding: 40px 0;

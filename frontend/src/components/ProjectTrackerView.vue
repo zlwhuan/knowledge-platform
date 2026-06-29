@@ -108,7 +108,7 @@ const {
     <el-row :gutter="12" class="compact-project-row project-workbench-row">
       <template v-if="trackerSubView === 'weeklyProgress'">
         <el-col :span="24" class="project-workbench-col">
-          <ProjectWeeklyProgressView :projects="viewProjects" />
+          <ProjectWeeklyProgressView :projects="viewProjects" :customers="customers" :users="users" />
         </el-col>
       </template>
       <template v-else>
