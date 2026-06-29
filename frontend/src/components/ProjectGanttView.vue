@@ -22,8 +22,12 @@ const stageColors = {
 
 const sortedProjects = computed(() => {
   return [...props.projects]
-    .filter(p => p.startDate && p.plannedEndDate)
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+    .sort((a, b) => {
+      if (a.startDate && b.startDate) return new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      if (a.startDate) return -1
+      if (b.startDate) return 1
+      return 0
+    })
 })
 
 function renderChart() {
@@ -33,8 +37,8 @@ function renderChart() {
 
   const categories = sortedProjects.value.map(p => p.name || '未命名')
   const barData = sortedProjects.value.map((p, idx) => {
-    const start = new Date(p.startDate).getTime()
-    const end = new Date(p.plannedEndDate).getTime()
+    const start = p.startDate ? new Date(p.startDate).getTime() : new Date().getTime() - 30 * 86400000
+    const end = p.plannedEndDate ? new Date(p.plannedEndDate).getTime() : new Date().getTime() + 30 * 86400000
     return {
       name: p.name,
       value: [idx, start, end, end - start],
@@ -54,14 +58,17 @@ function renderChart() {
       formatter(params) {
         const p = params.data?.project
         if (!p) return ''
-        return [
+        const latestRecord = (p.progressRecords || [])[0]
+        const lines = [
           `<strong>${p.name}</strong>`,
           `客户: ${p.customerName || '--'}`,
           `阶段: ${p.stage || '--'} / 状态: ${p.status || '--'}`,
           `进度: ${p.progress || 0}% | 风险: ${p.riskLevel || '低'}`,
-          `周期: ${p.startDate} → ${p.plannedEndDate}`,
+          `周期: ${p.startDate || '未设置'} → ${p.plannedEndDate || '未设置'}`,
           `项目经理: ${p.projectManager || '--'}`,
-        ].join('<br/>')
+        ]
+        if (latestRecord) lines.push(`最新进展: ${latestRecord.summary || '--'}`)
+        return lines.join('<br/>')
       }
     },
     grid: { left: 180, right: 40, top: 40, bottom: 60 },
@@ -157,7 +164,7 @@ onBeforeUnmount(() => {
         <p>加载中...</p>
       </div>
       <div v-else-if="!sortedProjects.length" style="text-align:center;padding:40px;">
-        <el-empty description="暂无项目的起止时间数据" />
+        <el-empty description="暂无项目数据" />
       </div>
       <div v-else>
         <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;">
