@@ -129,9 +129,6 @@ onBeforeUnmount(() => {
             <el-button @click="emit('toggle-select-all-displayed')">{{ allDisplayedSelected ? '取消全选' : '全选当前结果' }}</el-button>
             <el-button v-if="canEditContent" @click="emit('open-batch-edit-dialog')">批量编辑</el-button>
             <el-button @click="emit('load-items')">刷新列表</el-button>
-            <el-button @click="emit('trigger-import')">导入Excel</el-button>
-            <el-button @click="emit('export-items')">导出Excel</el-button>
-            <el-button v-if="canDeleteContent" type="danger" plain @click="emit('bulk-delete-items')">批量删除</el-button>
           </div>
         </div>
       </template>
