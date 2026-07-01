@@ -212,6 +212,9 @@ public class PreviewServiceImpl implements PreviewService {
             }
             Path converted = dir.resolve(baseName + ".pdf");
 
+            String sourceLower = source.getFileName().toString().toLowerCase();
+            String pdfFilter = sourceLower.matches(".*\\.(xls|xlsx)$") ? "calc_pdf_Export" : "writer_pdf_Export";
+
             for (String command : resolveOfficeCommands()) {
                 Path officeProfileDir = previewRoot.resolve("office-profile-shared");
                 Files.createDirectories(officeProfileDir);
@@ -226,7 +229,7 @@ public class PreviewServiceImpl implements PreviewService {
                         "--nofirststartwizard",
                         "-env:UserInstallation=file:///" + officeProfileDir.toAbsolutePath().toString().replace('\\', '/'),
                         "--convert-to",
-                        "pdf:writer_pdf_Export",
+                        "pdf:" + pdfFilter,
                         "--outdir",
                         dir.toAbsolutePath().toString(),
                         source.toAbsolutePath().toString()
