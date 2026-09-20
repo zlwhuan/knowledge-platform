@@ -134,7 +134,7 @@ function resetFilters() {
 
 <template>
   <el-card shadow="never" class="panel-card project-tracker-list-card">
-    <div class="project-filter-summary-bar" style="align-items: flex-start; gap: 10px; flex: 0 0 auto;">
+    <div class="project-filter-summary-bar" style="align-items: flex-start; gap: 8px; flex: 0 0 auto;">
       <div style="display:flex; flex-direction:column; gap:6px;">
         <span class="project-filter-summary-text">{{ filterSummaryWithCount }}</span>
         <el-space>

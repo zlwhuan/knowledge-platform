@@ -170,7 +170,7 @@ const globalSearchQuery = ref('')
 .brand-block-premium {
   margin-bottom: 8px;
   padding: 6px 4px 8px;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }

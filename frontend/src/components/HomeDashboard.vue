@@ -401,7 +401,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   --hd-success-soft: #edf7f1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .cockpit-topbar {
@@ -442,7 +442,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .kpi-card {
@@ -497,7 +497,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .stat-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .stat-item {
@@ -525,7 +525,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .cockpit-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
-  gap: 14px;
+  gap: 8px;
   align-items: start;
 }
 
@@ -533,7 +533,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .cockpit-side {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -549,7 +549,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 14px;
 }
 
@@ -582,13 +582,13 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .finance-body {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 14px;
+  gap: 8px;
 }
 
 .finance-numbers {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .finance-metric {
@@ -645,7 +645,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .radar-grid {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
@@ -714,7 +714,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .bucket-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .bucket-row {
@@ -727,7 +727,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .focus-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .focus-card {

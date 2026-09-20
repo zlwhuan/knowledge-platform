@@ -560,7 +560,7 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
               type="textarea"
               :rows="field.rows || 4"
             />
-            <div v-else-if="field.component === 'project-contact-link-editor'" class="project-contact-link-editor" style="display: flex; gap: 14px; flex-wrap: nowrap; align-items: flex-start; width: 100%;">
+            <div v-else-if="field.component === 'project-contact-link-editor'" class="project-contact-link-editor" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: flex-start; width: 100%;">
               <div class="project-contact-columns" style="display:flex;gap:14px;flex-wrap:nowrap;align-items:flex-start;width:100%;">
                 <section class="project-contact-card project-contact-card-customer">
                   <header class="project-contact-card-header">
@@ -730,13 +730,13 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
 <style scoped>
 .project-contact-link-editor {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .project-contact-columns {
   display: flex;
   width: 100%;
-  gap: 14px;
+  gap: 8px;
   align-items: start;
   flex-wrap: nowrap;
 }

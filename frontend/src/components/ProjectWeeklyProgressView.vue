@@ -211,7 +211,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 .weekly-progress-view {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   padding: 16px;
   background: var(--hd-surface);
   border: 1px solid var(--hd-line);
@@ -221,7 +221,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 .weekly-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 .week-label {

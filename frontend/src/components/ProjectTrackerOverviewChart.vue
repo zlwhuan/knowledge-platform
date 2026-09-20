@@ -309,7 +309,7 @@ const chartData = computed(() => {
 .trend-legend {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 6px;
   min-height: 20px;
