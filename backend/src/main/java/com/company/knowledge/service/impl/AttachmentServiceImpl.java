@@ -4,6 +4,7 @@ import com.company.knowledge.dto.AttachmentDetailResponse;
 import com.company.knowledge.dto.AttachmentResponse;
 import com.company.knowledge.entity.Attachment;
 import com.company.knowledge.entity.KnowledgeItem;
+import com.company.knowledge.event.EventPublisher;
 import com.company.knowledge.exception.ResourceNotFoundException;
 import com.company.knowledge.repository.AttachmentRepository;
 import com.company.knowledge.repository.KnowledgeItemRepository;
@@ -32,12 +33,14 @@ public class AttachmentServiceImpl implements AttachmentService {
     private final AttachmentRepository attachmentRepository;
     private final KnowledgeItemRepository knowledgeItemRepository;
     private final PreviewWarmupService previewWarmupService;
+    private final EventPublisher eventPublisher;
     private final Path uploadDir = Paths.get("uploads");
 
-    public AttachmentServiceImpl(AttachmentRepository attachmentRepository, KnowledgeItemRepository knowledgeItemRepository, PreviewWarmupService previewWarmupService) {
+    public AttachmentServiceImpl(AttachmentRepository attachmentRepository, KnowledgeItemRepository knowledgeItemRepository, PreviewWarmupService previewWarmupService, EventPublisher eventPublisher) {
         this.attachmentRepository = attachmentRepository;
         this.knowledgeItemRepository = knowledgeItemRepository;
         this.previewWarmupService = previewWarmupService;
+        this.eventPublisher = eventPublisher;
         try {
             Files.createDirectories(uploadDir);
         } catch (IOException ex) {
@@ -94,6 +97,8 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachment.setUploadedBy(StringUtils.hasText(uploadedBy) ? uploadedBy : "未知");
         attachment.setUploadedAt(LocalDateTime.now());
         Attachment saved = attachmentRepository.save(attachment);
+        // 发布事件，同步到向量库
+        eventPublisher.publishAttachmentCreated(saved.getId(), itemId, saved.getOriginalFileName());
         previewWarmupService.warmup(saved.getId());
         return toResponse(saved);
     }
@@ -131,6 +136,9 @@ public class AttachmentServiceImpl implements AttachmentService {
         } catch (IOException ex) {
             throw new IllegalStateException("删除附件文件失败", ex);
         }
+        // 发布事件，同步删除向量库
+        Long itemId = attachment.getItem() != null ? attachment.getItem().getId() : null;
+        eventPublisher.publishAttachmentDeleted(attachment.getId(), itemId, attachment.getOriginalFileName());
         attachmentRepository.delete(attachment);
     }
 

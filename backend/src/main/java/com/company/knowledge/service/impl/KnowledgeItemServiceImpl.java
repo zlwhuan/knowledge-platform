@@ -10,6 +10,7 @@ import com.company.knowledge.entity.Category;
 import com.company.knowledge.entity.KnowledgeItem;
 import com.company.knowledge.entity.KnowledgeItemVersion;
 import com.company.knowledge.entity.Project;
+import com.company.knowledge.event.EventPublisher;
 import com.company.knowledge.exception.ResourceNotFoundException;
 import com.company.knowledge.repository.AttachmentRepository;
 import com.company.knowledge.repository.CategoryRepository;
@@ -50,19 +51,22 @@ public class KnowledgeItemServiceImpl implements KnowledgeItemService {
     private final AttachmentRepository attachmentRepository;
     private final ProjectRepository projectRepository;
     private final KnowledgeItemVersionRepository knowledgeItemVersionRepository;
+    private final EventPublisher eventPublisher;
 
     public KnowledgeItemServiceImpl(
             KnowledgeItemRepository knowledgeItemRepository,
             CategoryRepository categoryRepository,
             AttachmentRepository attachmentRepository,
             ProjectRepository projectRepository,
-            KnowledgeItemVersionRepository knowledgeItemVersionRepository
+            KnowledgeItemVersionRepository knowledgeItemVersionRepository,
+            EventPublisher eventPublisher
     ) {
         this.knowledgeItemRepository = knowledgeItemRepository;
         this.categoryRepository = categoryRepository;
         this.attachmentRepository = attachmentRepository;
         this.projectRepository = projectRepository;
         this.knowledgeItemVersionRepository = knowledgeItemVersionRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -122,7 +126,12 @@ public class KnowledgeItemServiceImpl implements KnowledgeItemService {
     public KnowledgeItemResponse create(KnowledgeItemRequest request, String operatorName) {
         KnowledgeItem item = new KnowledgeItem();
         apply(item, request, operatorName);
-        return toResponse(knowledgeItemRepository.save(item));
+        KnowledgeItem savedItem = knowledgeItemRepository.save(item);
+        
+        // Publish event for vector sync
+        eventPublisher.publishKnowledgeItemCreated(savedItem.getId(), savedItem.getTitle());
+        
+        return toResponse(savedItem);
     }
 
     @Override
@@ -139,12 +148,21 @@ public class KnowledgeItemServiceImpl implements KnowledgeItemService {
         knowledgeItemVersionRepository.save(version);
 
         apply(item, request, operatorName);
-        return toResponse(knowledgeItemRepository.save(item));
+        KnowledgeItem updatedItem = knowledgeItemRepository.save(item);
+        
+        // Publish event for vector sync
+        eventPublisher.publishKnowledgeItemUpdated(updatedItem.getId(), updatedItem.getTitle());
+        
+        return toResponse(updatedItem);
     }
 
     @Override
     public void delete(Long id) {
         KnowledgeItem item = findItem(id);
+        
+        // Publish event for vector sync before deletion
+        eventPublisher.publishKnowledgeItemDeleted(item.getId(), item.getTitle());
+        
         // 先删除关联的附件文件
         List<Attachment> attachments = attachmentRepository.findByItemIdOrderByUploadedAtDesc(id);
         for (Attachment attachment : attachments) {
@@ -162,6 +180,10 @@ public class KnowledgeItemServiceImpl implements KnowledgeItemService {
     @Override
     public void bulkDelete(List<Long> ids) {
         List<KnowledgeItem> items = knowledgeItemRepository.findAllById(ids);
+        for (KnowledgeItem item : items) {
+            // Publish event for vector sync before deletion
+            eventPublisher.publishKnowledgeItemDeleted(item.getId(), item.getTitle());
+        }
         for (Long id : ids) {
             // 先删除关联的附件文件
             List<Attachment> attachments = attachmentRepository.findByItemIdOrderByUploadedAtDesc(id);
