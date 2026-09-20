@@ -57,7 +57,7 @@
 
   /* 布局密度（按分辨率由 media query 覆盖） */
   --side-width: 280px;
-  --main-pad: 12px;
+  --main-pad: 8px;
   --page-pad-x: 18px;
   --page-pad-y: 16px;
   --content-max: 2200px;
@@ -233,8 +233,12 @@ select {
 .attachment-management {
   width: 100%;
   max-width: var(--content-max);
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.home-cockpit {
+  padding: 0;
 }
 
 .brand-block {
@@ -4209,7 +4213,7 @@ body.attachment-preview-open .medium-zoom-image--opened {
 .training-management,
 .assessment-management,
 .attachment-management {
-  padding: 18px 18px 22px;
+  padding: 18px 8px 22px;
   background: var(--hd-surface);
   border: 1px solid var(--hd-line);
   border-radius: var(--card-radius);

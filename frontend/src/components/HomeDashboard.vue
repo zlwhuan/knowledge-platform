@@ -179,9 +179,8 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   <section class="home-cockpit">
     <header class="cockpit-topbar">
       <div class="cockpit-title">
-        <div class="cockpit-eyebrow">经营驾驶舱 · {{ todayLabel }}</div>
-        <h2>一屏看清经营与执行</h2>
-        <p>合同回款、项目风险、客户跟进集中呈现，优先处理标红事项。</p>
+        <h2>经营全景概览</h2>
+        <p>整合合同回款、项目风险、客户跟进等关键业务指标，支持快速决策与风险预警。</p>
       </div>
       <div class="cockpit-actions">
         <el-button type="primary" @click="emit('open-project-view', 'project-tracker')">项目追踪</el-button>
@@ -410,7 +409,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
-  padding: 20px 22px;
+  padding: 12px 14px;
   border: 1px solid var(--hd-line);
   border-radius: 16px;
   background:
@@ -419,24 +418,16 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   box-shadow: 0 8px 24px rgba(15, 47, 92, 0.04);
 }
 
-.cockpit-eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--hd-accent);
-  margin-bottom: 6px;
-}
-
 .cockpit-title h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 650;
   color: var(--hd-ink);
   letter-spacing: 0.01em;
 }
 
 .cockpit-title p {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: var(--hd-muted);
   line-height: 1.6;
 }
