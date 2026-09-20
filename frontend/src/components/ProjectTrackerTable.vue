@@ -23,6 +23,7 @@ const { getDueStatus, matchDueState } = useProjectTrackerTable()
 
 const TABLE_DENSITY_KEY = 'kp.projectTracker.compactTable'
 const compactTable = ref(localStorage.getItem(TABLE_DENSITY_KEY) === 'true')
+const filtersExpanded = ref(false)
 const listContentRef = ref(null)
 const tableBodyHeight = ref(320)
 let filterDebounceTimer = null
@@ -144,11 +145,16 @@ function resetFilters() {
       </div>
       <el-space>
         <el-switch v-model="compactTable" inline-prompt active-text="卡片" inactive-text="标准" />
-        <el-button @click="resetFilters">重置筛选</el-button>
+        <el-button size="small" @click="filtersExpanded = !filtersExpanded">
+          {{ filtersExpanded ? '收起筛选' : '展开筛选' }}
+        </el-button>
       </el-space>
     </div>
 
-    <div class="project-filter-inline" style="margin-top: 10px; display: grid; grid-template-columns: 1.2fr repeat(6, minmax(120px, 1fr)); gap: 8px; flex: 0 0 auto;">
+    <div
+      v-if="filtersExpanded"
+      class="project-filter-panel"
+    >
       <el-input v-model="projectFilters.keyword" clearable placeholder="关键词（项目名/客户名）" @keyup.enter="emit('filter')" />
       <el-select v-model="projectFilters.customerName" clearable filterable placeholder="客户名称">
         <el-option v-for="name in customerOptions" :key="`customer-${name}`" :label="name" :value="name" />
@@ -228,34 +234,37 @@ function resetFilters() {
       <div
         v-else
         class="project-card-grid project-card-grid-scroll"
-        :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '10px', maxHeight: `${tableBodyHeight}px` }"
       >
-        <el-card
+        <div
           v-for="item in filteredProjects"
           :key="item.id"
-          shadow="never"
-          :class="['project-mini-card', { 'project-mini-card-active': String(item.id) === String(selectedProjectId ?? '') }]"
+          class="project-mini-card"
+          :class="{ 'project-mini-card-active': String(item.id) === String(selectedProjectId ?? '') }"
           @click="emit('select-project', item)"
         >
-          <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center;">
-            <strong style="font-size: 14px;">{{ item.name }}</strong>
+          <div class="mini-card-head">
+            <div class="mini-card-titles">
+              <strong class="mini-card-name">{{ item.name || '--' }}</strong>
+              <span class="mini-card-meta">{{ item.customerName || '--' }} · {{ item.stage || '--' }}</span>
+            </div>
             <el-tag size="small" :type="resolveDueStatus(item).type">{{ resolveDueStatus(item).label }}</el-tag>
           </div>
-          <div style="margin-top: 6px; color: var(--el-text-color-secondary); font-size: 12px;">
-            {{ item.customerName || '--' }} · {{ item.stage || '--' }} · {{ item.status || '--' }}
+          <div class="mini-card-progress">
+            <div class="mini-card-progress-row">
+              <span class="mini-card-status">{{ item.status || '--' }}</span>
+              <span class="mini-card-percent">{{ item.progress || 0 }}%</span>
+            </div>
+            <el-progress :percentage="item.progress || 0" :stroke-width="6" :show-text="false" />
           </div>
-          <div style="margin-top: 8px;">
-            <el-progress :percentage="item.progress || 0" :stroke-width="6" />
-          </div>
-          <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 12px; color: var(--el-text-color-secondary);">负责人：{{ item.projectManager || item.salesOwner || item.implementationOwner || '--' }}</span>
-            <el-space>
+          <div class="mini-card-foot">
+            <span class="mini-card-owner">负责人：{{ item.projectManager || item.salesOwner || item.implementationOwner || '--' }}</span>
+            <div class="mini-card-actions">
               <el-button link type="primary" size="small" @click.stop="emit('open-progress', item)">推进</el-button>
               <el-button link size="small" @click.stop="emit('open-edit', item)">编辑</el-button>
               <el-button link type="danger" size="small" @click.stop="emit('delete-project', item)">删除</el-button>
-            </el-space>
+            </div>
           </div>
-        </el-card>
+        </div>
         <el-empty v-if="!filteredProjects.length" description="暂无匹配项目" />
       </div>
     </div>

@@ -66,8 +66,9 @@ export function useHomeDashboard({
       name: item.name,
       stage: item.stage,
       progress: item.progress || 0,
+      customerName: item.customerName || '',
       next: todo ? `${todo.stage}：${todo.nextAction}` : '暂无下一步安排',
-      owner: `项目经理 / ${item.projectManager || '--'}`,
+      owner: item.projectManager || item.salesOwner || '--',
     }
   }))
 

@@ -698,29 +698,52 @@ async function bootstrap() {
 }
 const router = useRouter()
 const route = useRoute()
+import { initBrowserHistory, disposeBrowserHistory } from './services/browserHistorySync'
 
-// Sync currentView from URL on initial load and browser back/forward
+// 浏览器前进/后退 → 站内视图（由 browserHistorySync 在可见时维护 hash）
 const viewFromRoute = computed(() => route.meta?.view || (route.path === '/' ? 'home' : null))
-watch(viewFromRoute, (view) => {
-  if (view && view !== currentView.value && auth.token) {
-    currentView.value = view
+
+function applyViewFromBrowser(view) {
+  if (!view || view === currentView.value || !auth.token) return
+  if (view === 'project-weekly-progress' || String(view).startsWith('project')) {
+    openProjectView(view)
+    return
   }
-}, { immediate: false })
+  if (['customers', 'training', 'assessment'].includes(view)) {
+    openSystemViewByNavigation(view)
+    return
+  }
+  if (view === 'attachment-management') {
+    libraryMenuOpen.value = true
+    projectMenuOpen.value = false
+    systemMenuOpen.value = false
+    trainingMenuOpen.value = false
+    currentView.value = view
+    return
+  }
+  setCurrentView(view)
+}
 
 onMounted(async () => {
   restoreAuth()
   restoreLibraryTreeState()
   window.addEventListener('keydown', handleGlobalEscape)
-  // Set initial view from URL
-  const initialView = viewFromRoute.value
-  if (initialView && initialView !== 'home') {
-    currentView.value = initialView
+
+  // 绑定浏览器历史桥（最小化时不写 History，避免 Edge 顶窗）
+  const initialFromHash = initBrowserHistory((view) => {
+    if (auth.token) applyViewFromBrowser(view)
+  })
+
+  const initialView = initialFromHash || viewFromRoute.value
+  if (initialView && initialView !== 'home' && auth.token) {
+    applyViewFromBrowser(initialView)
   }
   if (auth.token) await bootstrap()
 })
 onUnmounted(() => {
   destroyOnlyOfficeEditor()
   window.removeEventListener('keydown', handleGlobalEscape)
+  disposeBrowserHistory()
 })
 </script>
 

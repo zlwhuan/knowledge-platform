@@ -212,6 +212,11 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 16px;
+  background: var(--hd-surface);
+  border: 1px solid var(--hd-line);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
 }
 .weekly-toolbar {
   display: flex;
@@ -220,9 +225,10 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   flex-wrap: wrap;
 }
 .week-label {
-  font-weight: 600;
+  font-weight: 650;
   font-size: 15px;
-  color: #303133;
+  color: var(--hd-ink);
+  font-variant-numeric: tabular-nums;
 }
 .week-stats {
   display: flex;
@@ -233,18 +239,19 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   padding: 10px 12px;
-  background: #f5f7fa;
-  border-radius: 6px;
+  background: var(--hd-soft);
+  border: 1px solid var(--hd-line);
+  border-radius: 12px;
 }
 .empty-state {
   padding: 40px 0;
 }
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
   min-height: 300px;
 }
 .day-column {
@@ -256,42 +263,42 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 4px;
-  border-bottom: 2px solid #e4e7ed;
+  padding: 8px 6px;
+  border-bottom: 2px solid var(--hd-line);
   font-size: 12px;
-  color: #606266;
+  color: var(--hd-muted);
 }
 .day-header.day-today {
-  border-bottom-color: #409eff;
-  color: #409eff;
-  font-weight: 600;
+  border-bottom-color: var(--hd-accent);
+  color: var(--hd-accent);
+  font-weight: 650;
 }
 .day-label {
   font-weight: 600;
 }
 .day-date {
-  color: #909399;
+  color: var(--hd-muted);
   font-size: 11px;
 }
 .day-records {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 4px 0;
+  padding: 6px 0;
   flex: 1;
 }
 .day-empty {
   text-align: center;
-  color: #c0c4cc;
+  color: #b0bcc9;
   font-size: 12px;
   padding: 20px 0;
 }
 .record-card {
-  background: #f5f7fa;
-  border-radius: 6px;
+  background: var(--hd-soft);
+  border-radius: 10px;
   padding: 8px;
   font-size: 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--hd-line);
 }
 .record-header {
   display: flex;
@@ -302,14 +309,14 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .record-project {
   font-weight: 600;
-  color: #303133;
+  color: var(--hd-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
 }
 .record-time {
-  color: #909399;
+  color: var(--hd-muted);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -320,8 +327,8 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   flex-wrap: wrap;
 }
 .record-summary {
-  color: #606266;
-  line-height: 1.4;
+  color: var(--hd-ink-soft);
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -329,22 +336,22 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .record-action {
   margin-top: 4px;
-  color: #909399;
+  color: var(--hd-muted);
   font-size: 11px;
 }
 .action-label {
   font-weight: 600;
-  color: #e6a23c;
+  color: var(--hd-warning);
 }
 .action-date {
   margin-left: 4px;
-  color: #409eff;
+  color: var(--hd-accent);
 }
 .record-footer {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
-  color: #909399;
+  color: var(--hd-muted);
   font-size: 11px;
 }
 .record-owner {
@@ -352,6 +359,13 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .record-progress {
   font-weight: 600;
-  color: #409eff;
+  color: var(--hd-accent);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 1200px) {
+  .week-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  .week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>

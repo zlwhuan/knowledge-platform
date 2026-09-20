@@ -309,44 +309,7 @@ onMounted(() => {
 
 <style scoped>
 .attachment-management {
-  padding: 24px;
-  background: #fff;
-  border-radius: 8px;
-  min-height: calc(100vh - 120px);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e4e7ed;
-}
-
-.header-title h2 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-  color: #303133;
-}
-
-.header-title p {
-  margin: 0;
-  color: #909399;
-  font-size: 14px;
-}
-
-.header-stats {
-  display: flex;
-  gap: 32px;
-}
-
-.filter-bar {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 8px;
+  /* 壳层由全局 token 提供 */
 }
 
 .file-name-cell {
@@ -356,7 +319,7 @@ onMounted(() => {
 }
 
 .file-icon {
-  color: #909399;
+  color: var(--hd-muted);
   font-size: 18px;
 }
 
@@ -367,27 +330,16 @@ onMounted(() => {
 
 .file-name {
   font-size: 14px;
-  color: #303133;
+  color: var(--hd-ink);
 }
 
 .file-ext {
   font-size: 12px;
-  color: #909399;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e4e7ed;
+  color: var(--hd-muted);
 }
 
 :deep(.el-table__row) {
   cursor: default;
 }
-
-:deep(.el-table__row:hover) {
-  background-color: #f5f7fa !important;
-}
 </style>
+

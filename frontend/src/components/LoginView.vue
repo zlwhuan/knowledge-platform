@@ -53,13 +53,37 @@ const emit = defineEmits(['submit'])
 
 <style scoped>
 .login-logo-wrap {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .login-company-logo {
-  height: 52px;
+  height: 56px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 6px 16px rgba(20, 63, 125, 0.18));
+  filter: drop-shadow(0 8px 18px rgba(10, 30, 60, 0.28));
+}
+
+.login-copy h1 {
+  color: #f8fbff;
+}
+
+.hero-kicker {
+  letter-spacing: 0.1em;
+}
+
+.login-card {
+  align-self: center;
+}
+
+.login-card :deep(.el-card__header) {
+  border-bottom-color: var(--hd-line);
+}
+
+.login-button {
+  margin-top: 4px;
+  height: 40px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 </style>
+

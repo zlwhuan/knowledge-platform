@@ -1,14 +1,43 @@
 <script setup>
-import { computed, reactive } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 const props = defineProps({
   selectedProject: { type: Object, default: null },
 })
 
-const chartWidth = 1120
 const chartHeight = 240
-const padding = { top: 20, right: 12, bottom: 42, left: 32 }
+const padding = { top: 24, right: 24, bottom: 40, left: 44 }
 const seriesColors = ['#2563eb', '#16a34a', '#dc2626', '#9333ea', '#ea580c', '#0f766e']
+
+// viewBox 宽度跟随容器像素宽，保证与显示尺寸 1:1，不纵向拉伸
+const svgBoxRef = ref(null)
+const chartWidth = ref(1200)
+let resizeObserver = null
+
+function syncChartWidth() {
+  const el = svgBoxRef.value
+  if (!el) return
+  const w = Math.round(el.clientWidth || el.getBoundingClientRect().width || 1200)
+  chartWidth.value = Math.max(720, w)
+}
+
+onMounted(() => {
+  syncChartWidth()
+  if (typeof ResizeObserver !== 'undefined' && svgBoxRef.value) {
+    resizeObserver = new ResizeObserver(() => syncChartWidth())
+    resizeObserver.observe(svgBoxRef.value)
+  } else {
+    window.addEventListener('resize', syncChartWidth)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+  window.removeEventListener('resize', syncChartWidth)
+})
 
 const tooltip = reactive({
   visible: false,
@@ -65,7 +94,6 @@ const progressRecords = computed(() => {
     .sort((a, b) => a.date - b.date)
 })
 
-
 const chartData = computed(() => {
   const records = progressRecords.value
   if (!records.length) {
@@ -79,7 +107,7 @@ const chartData = computed(() => {
 
   const minTs = records[0].date.getTime()
   const maxTs = records[records.length - 1].date.getTime()
-  const plotWidth = chartWidth - padding.left - padding.right
+  const plotWidth = chartWidth.value - padding.left - padding.right
   const plotHeight = chartHeight - padding.top - padding.bottom
 
   const xFromTs = (ts) => {
@@ -113,14 +141,26 @@ const chartData = computed(() => {
     }
   })
 
-  const xTickIndexes = [0, Math.floor((records.length - 1) / 2), records.length - 1]
-  const xTicks = Array.from(new Set(xTickIndexes)).map((idx) => {
-    const item = records[idx]
-    return {
+  const total = records.length
+  const maxLabels = 10
+  const step = total <= maxLabels ? 1 : Math.ceil(total / maxLabels)
+  const xTicks = []
+  for (let i = 0; i < total; i += step) {
+    const item = records[i]
+    xTicks.push({
       x: xFromTs(item.date.getTime()),
-      label: formatDateTime(item.date).slice(5, 16),
+      label: formatDateTime(item.date).slice(5, 10),
+    })
+  }
+  const last = records[total - 1]
+  const lastLabel = formatDateTime(last.date).slice(5, 10)
+  if (!xTicks.length || xTicks[xTicks.length - 1].label !== lastLabel) {
+    const lastX = xFromTs(last.date.getTime())
+    const prev = xTicks[xTicks.length - 1]
+    if (!prev || lastX - prev.x > 28) {
+      xTicks.push({ x: lastX, label: lastLabel })
     }
-  })
+  }
 
   const gridLines = [0, 25, 50, 75, 100].map((value) => ({
     value,
@@ -150,23 +190,51 @@ const chartData = computed(() => {
       <el-empty v-if="!selectedProject" description="请先在左侧选中项目" />
       <el-empty v-else-if="!chartData.hasData" description="当前项目暂无进度记录，无法绘制趋势线" />
 
-      <div v-else>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-          <span v-for="item in chartData.series" :key="item.phase" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#5f6f84;">
-            <i :style="`display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.color}`"></i>
+      <div v-else class="trend-chart-wrap">
+        <div class="trend-legend">
+          <span v-for="item in chartData.series" :key="item.phase" class="trend-legend-item">
+            <i :style="`background:${item.color}`"></i>
             {{ item.phase }}
           </span>
         </div>
 
-        <div style="position: relative;">
-          <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" style="width: 100%; height: 240px; display:block;">
+        <div ref="svgBoxRef" class="trend-svg-box">
+          <svg
+            :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+            class="trend-svg"
+            preserveAspectRatio="xMidYMid meet"
+          >
             <g>
-              <line v-for="line in chartData.gridLines" :key="`grid-${line.value}`" :x1="padding.left" :y1="line.y" :x2="chartWidth - padding.right" :y2="line.y" stroke="#e6edf8" />
-              <text v-for="line in chartData.gridLines" :key="`label-${line.value}`" :x="padding.left - 8" :y="line.y + 4" text-anchor="end" font-size="11" fill="#6b7280">{{ line.value }}</text>
+              <line
+                v-for="line in chartData.gridLines"
+                :key="`grid-${line.value}`"
+                :x1="padding.left"
+                :y1="line.y"
+                :x2="chartWidth - padding.right"
+                :y2="line.y"
+                stroke="#e8eef6"
+                stroke-width="1"
+              />
+              <text
+                v-for="line in chartData.gridLines"
+                :key="`label-${line.value}`"
+                :x="padding.left - 10"
+                :y="line.y + 4"
+                text-anchor="end"
+                font-size="12"
+                fill="#7b8a9d"
+              >{{ line.value }}</text>
             </g>
 
             <g>
-              <path v-for="item in chartData.series" :key="`line-${item.phase}`" :d="item.path" fill="none" :stroke="item.color" stroke-width="2.5" />
+              <path
+                v-for="item in chartData.series"
+                :key="`line-${item.phase}`"
+                :d="item.path"
+                fill="none"
+                :stroke="item.color"
+                stroke-width="2.5"
+              />
               <g v-for="item in chartData.series" :key="`dots-${item.phase}`">
                 <circle
                   v-for="point in item.points"
@@ -175,6 +243,8 @@ const chartData = computed(() => {
                   :cy="point.y"
                   r="6"
                   :fill="item.color"
+                  stroke="#fff"
+                  stroke-width="2"
                   style="cursor: pointer;"
                   @mouseenter="showTooltip($event, item.phase, [`时间：${formatDateTime(point.recordTime || point.createdAt)}`, `进度：${point.progressValue}%`, `摘要：${point.summary || '--'}`, `下一步：${point.nextAction || '--'}`])"
                   @mousemove="moveTooltip"
@@ -184,8 +254,23 @@ const chartData = computed(() => {
             </g>
 
             <g>
-              <line :x1="padding.left" :y1="chartHeight - padding.bottom" :x2="chartWidth - padding.right" :y2="chartHeight - padding.bottom" stroke="#cdd9ee" />
-              <text v-for="(tick, idx) in chartData.xTicks" :key="`tick-${idx}`" :x="tick.x" :y="chartHeight - 16" text-anchor="middle" font-size="11" fill="#6b7280">{{ tick.label }}</text>
+              <line
+                :x1="padding.left"
+                :y1="chartHeight - padding.bottom"
+                :x2="chartWidth - padding.right"
+                :y2="chartHeight - padding.bottom"
+                stroke="#c5d2e5"
+                stroke-width="1"
+              />
+              <text
+                v-for="(tick, idx) in chartData.xTicks"
+                :key="`tick-${idx}`"
+                :x="tick.x"
+                :y="chartHeight - 14"
+                text-anchor="middle"
+                font-size="12"
+                fill="#6b7c93"
+              >{{ tick.label }}</text>
             </g>
           </svg>
 
@@ -215,3 +300,52 @@ const chartData = computed(() => {
     </div>
   </el-card>
 </template>
+
+<style scoped>
+.trend-chart-wrap {
+  width: 100%;
+}
+
+.trend-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  min-height: 20px;
+}
+
+.trend-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5f6f84;
+}
+
+.trend-legend-item i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.trend-svg-box {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+
+.trend-svg {
+  width: 100% !important;
+  height: 240px !important;
+  display: block !important;
+}
+
+@media (min-width: 1920px) {
+  .trend-svg-box,
+  .trend-svg {
+    height: 260px !important;
+  }
+}
+</style>

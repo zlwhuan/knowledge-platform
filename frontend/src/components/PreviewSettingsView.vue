@@ -17,42 +17,36 @@ const previewCards = computed(() => [
 </script>
 
 <template>
-  <section class="page-section">
-    <el-row :gutter="12" class="preview-section-row">
-      <el-col :xs="24" :lg="12">
-        <el-card shadow="never" class="panel-card">
-          <template #header>
-            <div class="card-header-block">
-              <div>
-                <h3>预览配置</h3>
-                <p>查看当前文档预览策略与运行方式</p>
-              </div>
-            </div>
-          </template>
-          <el-descriptions :column="1" border>
-            <el-descriptions-item label="应用名称">{{ systemSettings.appName || '知识平台 CMS' }}</el-descriptions-item>
-            <el-descriptions-item label="LibreOffice 命令">{{ systemSettings.officeCommand || '未配置' }}</el-descriptions-item>
-            <el-descriptions-item label="OnlyOffice">{{ systemSettings.onlyOfficeEnabled ? '已启用' : '未启用' }}</el-descriptions-item>
-            <el-descriptions-item label="服务端口">{{ systemSettings.serverPort || '8080' }}</el-descriptions-item>
-            <el-descriptions-item label="预览策略">图片、音视频、PDF、文本优先在线预览，Office 走后端能力自动分流</el-descriptions-item>
-          </el-descriptions>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :lg="12">
-        <el-card shadow="never" class="panel-card">
-          <template #header>
-            <div class="card-header-block">
-              <div>
-                <h3>预览说明</h3>
-                <p>结合当前环境显示可用能力与降级策略</p>
-              </div>
-            </div>
-          </template>
-          <div class="workflow-board">
-            <div v-for="item in previewCards" :key="item.label" class="workflow-card"><span>{{ item.label }}</span><strong>{{ item.value }}</strong><small>{{ item.hint }}</small></div>
+  <section class="page-section sys-page">
+    <el-card shadow="never" class="panel-card sys-page-card">
+      <template #header>
+        <div class="sys-page-head">
+          <div>
+            <h2>预览配置</h2>
+            <p>文档预览策略与当前环境能力</p>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+      </template>
+
+      <div class="sys-page-body sys-preview-body">
+        <el-descriptions :column="2" border class="sys-desc">
+          <el-descriptions-item label="应用名称">{{ systemSettings.appName || '知识平台 CMS' }}</el-descriptions-item>
+          <el-descriptions-item label="服务端口">{{ systemSettings.serverPort || '8080' }}</el-descriptions-item>
+          <el-descriptions-item label="LibreOffice">{{ systemSettings.officeCommand || '未配置' }}</el-descriptions-item>
+          <el-descriptions-item label="OnlyOffice">{{ systemSettings.onlyOfficeEnabled ? '已启用' : '未启用' }}</el-descriptions-item>
+          <el-descriptions-item label="预览策略" :span="2">
+            图片、音视频、PDF、文本优先在线预览，Office 走后端能力自动分流
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <div class="sys-suggest-grid">
+          <div v-for="item in previewCards" :key="item.label" class="sys-suggest-card">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <small>{{ item.hint }}</small>
+          </div>
+        </div>
+      </div>
+    </el-card>
   </section>
 </template>
