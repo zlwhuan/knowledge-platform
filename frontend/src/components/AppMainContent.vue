@@ -17,6 +17,9 @@ const ProjectGanttView = defineAsyncComponent(() => import('./ProjectGanttView.v
 const AttachmentManagement = defineAsyncComponent(() => import('./AttachmentManagement.vue'))
 const TrainingManagement = defineAsyncComponent(() => import('./TrainingManagement.vue'))
 const AssessmentManagement = defineAsyncComponent(() => import('./AssessmentManagement.vue'))
+const VectorSearchView = defineAsyncComponent(() => import('./VectorSearchView.vue'))
+const VectorMaintenanceView = defineAsyncComponent(() => import('./VectorMaintenanceView.vue'))
+const VectorHealthView = defineAsyncComponent(() => import('./VectorHealthView.vue'))
 
 const props = defineProps({
   currentView: { type: String, required: true },
@@ -257,6 +260,15 @@ const emit = defineEmits([
       @open-item="(itemId) => emit('open-detail', { id: itemId })"
       @open-preview="(attachment) => emit('open-preview', attachment)"
     />
+    <VectorSearchView
+      v-else-if="currentView === 'vector-search'"
+      @open-item="(itemId) => emit('open-detail', { id: itemId })"
+    />
+    <VectorMaintenanceView
+      v-else-if="currentView === 'vector-maintenance'"
+      @open-item="(itemId) => emit('open-detail', { id: itemId })"
+    />
+    <VectorHealthView v-else-if="currentView === 'vector-health'" />
     <TrainingManagement
       v-else-if="currentView === 'training'"
       :auth="{}"

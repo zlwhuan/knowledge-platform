@@ -127,30 +127,27 @@ public class VectorSyncListener {
             List<RagService.AttachmentContent> attachmentContents = new ArrayList<>();
             for (Attachment attachment : attachments) {
                 try {
-                    // Fix file path - convert relative to absolute if needed
                     String filePath = attachment.getFilePath();
-                    logger.info("Attachment {} original filePath: {}", attachment.getId(), filePath);
-                    
-                    if (filePath != null && !filePath.startsWith("/") && !filePath.contains(":")) {
-                        // Relative path, prepend uploads directory
-                        filePath = System.getProperty("user.dir") + "/uploads/" + filePath;
-                    }
-                    logger.info("Attachment {} resolved filePath: {}", attachment.getId(), filePath);
-                    
+                    logger.info("Attachment {} filePath: {}", attachment.getId(), filePath);
+
                     String content = contentExtractor.extractContent(
                             filePath,
                             attachment.getContentType()
                     );
-                    logger.info("Attachment {} extracted content length: {}", 
+                    logger.info("Attachment {} extracted content length: {}",
                             attachment.getId(), content != null ? content.length() : 0);
-                    
+
                     if (content != null && !content.trim().isEmpty()) {
                         attachmentContents.add(new RagService.AttachmentContent(
                                 attachment.getId(),
                                 attachment.getOriginalFileName(),
                                 content,
-                                attachment.getContentType()
+                                attachment.getContentType(),
+                                attachment.getFilePath()
                         ));
+                    } else {
+                        logger.warn("Attachment {} empty extract, skip vectorization: {}",
+                                attachment.getId(), attachment.getOriginalFileName());
                     }
                 } catch (Exception e) {
                     logger.warn("Failed to extract content from attachment {}: {}",
@@ -184,13 +181,7 @@ public class VectorSyncListener {
             logger.info("Syncing attachment: {} - {}", attachment.getId(), attachment.getOriginalFileName());
 
             try {
-                // Fix file path - convert relative to absolute if needed
                 String filePath = attachment.getFilePath();
-                if (filePath != null && !filePath.startsWith("/") && !filePath.contains(":")) {
-                    // Relative path, prepend uploads directory
-                    filePath = System.getProperty("user.dir") + "/uploads/" + filePath;
-                }
-                
                 String content = contentExtractor.extractContent(
                         filePath,
                         attachment.getContentType()
@@ -200,7 +191,8 @@ public class VectorSyncListener {
                     ragService.syncAttachment(attachment, content);
                     logger.info("Successfully synced attachment {}", attachmentId);
                 } else {
-                    logger.debug("No content extracted from attachment {}", attachmentId);
+                    logger.warn("No content extracted from attachment {} ({}), skip vectorization",
+                            attachmentId, attachment.getOriginalFileName());
                 }
             } catch (Exception e) {
                 logger.error("Failed to sync attachment {}", attachmentId, e);

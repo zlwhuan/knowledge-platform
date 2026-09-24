@@ -28,6 +28,9 @@ export function useShellNavigation({
       'training': '/training',
       'assessment': '/assessment',
       'attachment-management': '/attachment-management',
+      'vector-search': '/vector-search',
+      'vector-maintenance': '/vector-maintenance',
+      'vector-health': '/vector-health',
       'settings': '/settings',
       'dictionary-settings': '/dictionary-settings',
       'users': '/users',
@@ -69,6 +72,10 @@ export function useShellNavigation({
     if (view === 'library' || view === 'compose' || view === 'attachment-management') {
       expandOnly('library')
       if (view === 'library') openAllLibrary()
+      return
+    }
+    if (view === 'vector-search' || view === 'vector-maintenance' || view === 'vector-health') {
+      expandOnly('library')
       return
     }
     if (String(view).startsWith('project')) {

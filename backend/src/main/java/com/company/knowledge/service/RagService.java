@@ -5,6 +5,7 @@ import com.company.knowledge.entity.Attachment;
 import com.company.knowledge.entity.KnowledgeItem;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * RAG (Retrieval-Augmented Generation) Service interface
@@ -79,6 +80,43 @@ public interface RagService {
     String getStatus();
 
     /**
+     * Get structured status map for the vector admin UI
+     */
+    Map<String, Object> getStatusMap();
+
+    /**
+     * List indexed sources with chunk counts
+     */
+    Map<String, Object> listSources(String category, String docType);
+
+    /**
+     * List indexed chunks for maintenance
+     */
+    Map<String, Object> listChunks(String path, String q, String docType, int limit, int offset);
+
+    /**
+     * Get one chunk by id
+     */
+    Map<String, Object> getChunk(String chunkId);
+
+    /**
+     * Delete one chunk from the index
+     */
+    Map<String, Object> deleteChunk(String chunkId);
+
+    /**
+     * Delete all chunks of a source path
+     */
+    Map<String, Object> deleteSource(String path);
+
+    /**
+     * Reindex a source path or the full store
+     * @param path source path (optional when mode=full)
+     * @param mode source | full
+     */
+    Map<String, Object> reindex(String path, String mode);
+
+    /**
      * Content holder for attachment text extraction
      */
     class AttachmentContent {
@@ -86,14 +124,20 @@ public interface RagService {
         private String filename;
         private String content;
         private String contentType;
+        private String filePath;
 
         public AttachmentContent() {}
 
         public AttachmentContent(Long attachmentId, String filename, String content, String contentType) {
+            this(attachmentId, filename, content, contentType, null);
+        }
+
+        public AttachmentContent(Long attachmentId, String filename, String content, String contentType, String filePath) {
             this.attachmentId = attachmentId;
             this.filename = filename;
             this.content = content;
             this.contentType = contentType;
+            this.filePath = filePath;
         }
 
         public Long getAttachmentId() {
@@ -126,6 +170,14 @@ public interface RagService {
 
         public void setContentType(String contentType) {
             this.contentType = contentType;
+        }
+
+        public String getFilePath() {
+            return filePath;
+        }
+
+        public void setFilePath(String filePath) {
+            this.filePath = filePath;
         }
     }
 }

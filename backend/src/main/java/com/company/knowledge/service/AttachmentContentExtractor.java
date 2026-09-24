@@ -2,12 +2,19 @@ package com.company.knowledge.service;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xslf.usermodel.XMLSlideShow;
+import org.apache.poi.xslf.usermodel.XSLFShape;
+import org.apache.poi.xslf.usermodel.XSLFSlide;
+import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,8 +36,29 @@ public class AttachmentContentExtractor {
     private static final Logger logger = LoggerFactory.getLogger(AttachmentContentExtractor.class);
 
     /**
+     * 解析附件落盘路径。
+     * 库里可能存：绝对路径、uploads/xxx、纯文件名——统一映射到 uploads 目录。
+     */
+    public Path resolveUploadPath(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            return null;
+        }
+        String normalized = filePath.trim().replace('\\', '/');
+        Path direct = Paths.get(filePath);
+        if (direct.isAbsolute() || normalized.contains(":/") || normalized.startsWith("/")) {
+            return direct;
+        }
+        String rel = normalized;
+        if (rel.startsWith("uploads/")) {
+            rel = rel.substring("uploads/".length());
+        }
+        Path base = Paths.get(System.getProperty("user.dir"), "uploads");
+        return base.resolve(rel).normalize();
+    }
+
+    /**
      * Extract text content from a file
-     * @param filePath Path to the file
+     * @param filePath Path to the file (absolute, uploads/xxx, or bare filename)
      * @param contentType MIME type of the file
      * @return Extracted text content, or empty string if extraction fails
      */
@@ -39,14 +67,14 @@ public class AttachmentContentExtractor {
             return "";
         }
 
-        Path path = Paths.get(filePath);
-        if (!Files.exists(path)) {
-            logger.warn("File does not exist: {}", filePath);
+        Path path = resolveUploadPath(filePath);
+        if (path == null || !Files.exists(path)) {
+            logger.warn("Attachment file not found: {} (resolved={})", filePath, path);
             return "";
         }
 
         String fileName = path.getFileName().toString().toLowerCase();
-        
+
         try {
             if (fileName.endsWith(".md") || fileName.endsWith(".txt") || fileName.endsWith(".markdown")) {
                 return extractTextFile(path);
@@ -54,16 +82,18 @@ public class AttachmentContentExtractor {
                 return extractDocx(path);
             } else if (fileName.endsWith(".pdf")) {
                 return extractPdf(path);
+            } else if (fileName.endsWith(".pptx") || fileName.endsWith(".pptm")) {
+                return extractPptx(path);
             } else if (fileName.endsWith(".xls")) {
                 return extractExcelOld(path);
             } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xlsm")) {
                 return extractExcel(path);
             } else {
-                logger.debug("Unsupported file format: {}", fileName);
+                logger.info("Unsupported attachment format for vectorization: {}", fileName);
                 return "";
             }
         } catch (Exception e) {
-            logger.error("Failed to extract content from file: {}", filePath, e);
+            logger.error("Failed to extract content from file: {}", path, e);
             return "";
         }
     }
@@ -114,28 +144,47 @@ public class AttachmentContentExtractor {
     }
 
     /**
-     * Extract content from a PDF file
-     * Note: This is a basic implementation. For production, consider using Apache PDFBox.
+     * Extract content from a PDF file via PDFBox
      */
     private String extractPdf(Path path) throws IOException {
-        // For now, return a placeholder. In production, use Apache PDFBox or similar.
-        // You can add PDFBox dependency and implement proper PDF extraction.
-        logger.info("PDF extraction not fully implemented. File: {}", path.getFileName());
-        
-        // Try to read as text (some PDFs are text-based)
-        try {
-            byte[] bytes = Files.readAllBytes(path);
-            String text = new String(bytes, StandardCharsets.UTF_8);
-            // Remove non-printable characters
-            text = text.replaceAll("[^\\x20-\\x7E\\n\\r\\t]", "");
-            if (text.length() > 100) {
-                return text;
+        try (PDDocument document = Loader.loadPDF(path.toFile())) {
+            if (document.isEncrypted()) {
+                logger.warn("PDF is encrypted, skip: {}", path.getFileName());
+                return "";
             }
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
+            String text = stripper.getText(document);
+            return text == null ? "" : text.trim();
         } catch (Exception e) {
-            // Ignore
+            logger.error("PDF extraction failed: {}", path, e);
+            return "";
         }
-        
-        return "[PDF content extraction not available]";
+    }
+
+    /**
+     * Extract content from PowerPoint (.pptx / .pptm)
+     */
+    private String extractPptx(Path path) throws IOException {
+        StringBuilder content = new StringBuilder();
+        try (InputStream is = Files.newInputStream(path);
+             XMLSlideShow ppt = new XMLSlideShow(is)) {
+            int slideNo = 0;
+            for (XSLFSlide slide : ppt.getSlides()) {
+                slideNo++;
+                content.append("[page ").append(slideNo).append("]\n");
+                for (XSLFShape shape : slide.getShapes()) {
+                    if (shape instanceof XSLFTextShape textShape) {
+                        String text = textShape.getText();
+                        if (text != null && !text.trim().isEmpty()) {
+                            content.append(text.trim()).append('\n');
+                        }
+                    }
+                }
+                content.append('\n');
+            }
+        }
+        return content.toString();
     }
 
     /**

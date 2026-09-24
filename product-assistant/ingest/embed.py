@@ -240,6 +240,12 @@ class LanceVectorStore:
                 "section": c.section,
                 "page": c.page,
                 "text": c.text,
+                "source_kind": getattr(c, "source_kind", "item") or "item",
+                "item_id": getattr(c, "item_id", "") or "",
+                "attachment_id": getattr(c, "attachment_id", "") or "",
+                "filename": getattr(c, "filename", "") or "",
+                "file_path": getattr(c, "file_path", "") or "",
+                "locator": getattr(c, "locator", "") or "",
                 "vector": vecs[i].tolist() if len(vecs) else [0.0] * dim,
             }
             for i, c in enumerate(chunks)
@@ -295,6 +301,12 @@ class LanceVectorStore:
                     "doc_type": row.get("doc_type", ""),
                     "path": row.get("rel_path", ""),
                     "text": row.get("text", ""),
+                    "source_kind": row.get("source_kind") or ("attachment" if str(row.get("rel_path", "")).startswith("attachments/") else "item"),
+                    "item_id": str(row.get("item_id") or ""),
+                    "attachment_id": str(row.get("attachment_id") or ""),
+                    "filename": row.get("filename") or "",
+                    "file_path": row.get("file_path") or "",
+                    "locator": row.get("locator") or "",
                     "_distance": float(row.get("_distance", 0.0) or 0.0),
                 }
             )
@@ -377,6 +389,12 @@ class RagIndex:
                     "section": c.section,
                     "page": c.page,
                     "text": c.text,
+                    "source_kind": getattr(c, "source_kind", "item") or "item",
+                    "item_id": getattr(c, "item_id", "") or "",
+                    "attachment_id": getattr(c, "attachment_id", "") or "",
+                    "filename": getattr(c, "filename", "") or "",
+                    "file_path": getattr(c, "file_path", "") or "",
+                    "locator": getattr(c, "locator", "") or "",
                 }
             )
         with paths["chunks_file"].open("w", encoding="utf-8") as f:
@@ -423,6 +441,9 @@ class RagIndex:
                 if not line:
                     continue
                 row = _json.loads(line)
+                source_kind = row.get("source_kind") or (
+                    "attachment" if row["rel_path"].startswith("attachments/") else "item"
+                )
                 chunks.append(
                     Chunk(
                         chunk_id=row["chunk_id"],
@@ -433,6 +454,12 @@ class RagIndex:
                         section=row["section"],
                         page=row.get("page", ""),
                         text=row["text"],
+                        source_kind=source_kind,
+                        item_id=str(row.get("item_id") or ""),
+                        attachment_id=str(row.get("attachment_id") or ""),
+                        filename=row.get("filename") or "",
+                        file_path=row.get("file_path") or "",
+                        locator=row.get("locator") or "",
                     )
                 )
         index.chunks = chunks
@@ -576,6 +603,12 @@ class RagIndex:
                     "doc_type": c.doc_type,
                     "path": c.rel_path,
                     "text": c.text,
+                    "source_kind": getattr(c, "source_kind", "item") or "item",
+                    "item_id": getattr(c, "item_id", "") or "",
+                    "attachment_id": getattr(c, "attachment_id", "") or "",
+                    "filename": getattr(c, "filename", "") or "",
+                    "file_path": getattr(c, "file_path", "") or "",
+                    "locator": getattr(c, "locator", "") or "",
                 }
             )
         return results
@@ -594,6 +627,12 @@ class RagIndex:
                     "title": c.title,
                     "product": c.product,
                     "doc_type": c.doc_type,
+                    "source_kind": getattr(c, "source_kind", "item") or "item",
+                    "item_id": getattr(c, "item_id", "") or "",
+                    "attachment_id": getattr(c, "attachment_id", "") or "",
+                    "filename": getattr(c, "filename", "") or "",
+                    "file_path": getattr(c, "file_path", "") or "",
+                    "locator": getattr(c, "locator", "") or "",
                     "chunks": 0,
                 }
             seen[key]["chunks"] += 1

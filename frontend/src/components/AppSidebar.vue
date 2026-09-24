@@ -5,6 +5,7 @@ defineProps({
   userDisplayName: { type: String, required: true },
   currentView: { type: String, required: true },
   libraryMenuOpen: { type: Boolean, default: false },
+  vectorMenuOpen: { type: Boolean, default: false },
   projectMenuOpen: { type: Boolean, default: false },
   systemMenuOpen: { type: Boolean, default: false },
   trainingMenuOpen: { type: Boolean, default: false },
@@ -24,6 +25,8 @@ const emit = defineEmits([
   'open-all-library',
   'toggle-node',
   'choose-category',
+  'toggle-vector-menu',
+  'open-vector-view',
   'toggle-project-menu',
   'open-project-view',
   'toggle-system-menu',
@@ -57,7 +60,7 @@ const globalSearchQuery = ref('')
         <button
           type="button"
           class="nav-button nav-button-group"
-          :class="{ active: libraryMenuOpen || ['library', 'compose', 'attachment-management'].includes(currentView) }"
+          :class="{ active: libraryMenuOpen || ['library', 'compose', 'attachment-management', 'vector-search', 'vector-maintenance', 'vector-health'].includes(currentView) }"
           @click="emit('toggle-library-menu')"
         >
           <span class="nav-main-label">知识库</span>
@@ -87,6 +90,34 @@ const globalSearchQuery = ref('')
           >
             附件管理
           </button>
+          <button
+            type="button"
+            class="nav-sub-link is-level-1 vector-group-label"
+            :class="{ open: vectorMenuOpen }"
+            @click="emit('toggle-vector-menu')"
+          >
+            向量库
+          </button>
+          <template v-if="vectorMenuOpen">
+            <button
+              type="button"
+              class="nav-sub-link is-level-2"
+              :class="{ active: currentView === 'vector-search' }"
+              @click="emit('open-vector-view', 'vector-search')"
+            >快捷搜索</button>
+            <button
+              type="button"
+              class="nav-sub-link is-level-2"
+              :class="{ active: currentView === 'vector-maintenance' }"
+              @click="emit('open-vector-view', 'vector-maintenance')"
+            >结果维护</button>
+            <button
+              type="button"
+              class="nav-sub-link is-level-2"
+              :class="{ active: currentView === 'vector-health' }"
+              @click="emit('open-vector-view', 'vector-health')"
+            >库健康</button>
+          </template>
         </div>
       </div>
 
@@ -198,5 +229,22 @@ const globalSearchQuery = ref('')
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.vector-group-label {
+  font-weight: 650;
+  opacity: 0.95;
+}
+
+.vector-group-label.open::after {
+  content: '▾';
+  margin-left: 6px;
+  font-size: 10px;
+}
+
+.vector-group-label:not(.open)::after {
+  content: '▸';
+  margin-left: 6px;
+  font-size: 10px;
 }
 </style>

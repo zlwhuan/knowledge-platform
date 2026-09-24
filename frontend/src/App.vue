@@ -30,6 +30,7 @@ const loginForm = reactive({ username: 'admin', password: 'Admin@123' })
 const loginError = ref('')
 const currentView = ref('home')
 const libraryMenuOpen = ref(false)
+const vectorMenuOpen = ref(false)
 const projectMenuOpen = ref(false)
 const systemMenuOpen = ref(false)
 const trainingMenuOpen = ref(false)
@@ -491,6 +492,24 @@ function chooseCategory(categoryId) {
   expandParentChain(categoryId)
   selectCategory(categoryId)
 }
+
+function toggleVectorMenu() {
+  if (vectorMenuOpen.value) {
+    vectorMenuOpen.value = false
+    return
+  }
+  libraryMenuOpen.value = true
+  vectorMenuOpen.value = true
+  if (!['vector-search', 'vector-maintenance', 'vector-health'].includes(currentView.value)) {
+    openVectorView('vector-search')
+  }
+}
+
+function openVectorView(view) {
+  libraryMenuOpen.value = true
+  vectorMenuOpen.value = true
+  setCurrentView(view)
+}
 function clearAuthState() {
   localStorage.removeItem(storageKey)
   auth.token = ''
@@ -721,6 +740,15 @@ function applyViewFromBrowser(view) {
     currentView.value = view
     return
   }
+  if (view === 'vector-search' || view === 'vector-maintenance' || view === 'vector-health') {
+    libraryMenuOpen.value = true
+    vectorMenuOpen.value = true
+    projectMenuOpen.value = false
+    systemMenuOpen.value = false
+    trainingMenuOpen.value = false
+    currentView.value = view
+    return
+  }
   setCurrentView(view)
 }
 
@@ -754,6 +782,7 @@ onUnmounted(() => {
       :user-display-name="auth.user?.displayName || auth.user?.username || '当前用户'"
       :current-view="currentView"
       :library-menu-open="libraryMenuOpen"
+      :vector-menu-open="vectorMenuOpen"
       :project-menu-open="projectMenuOpen"
       :system-menu-open="systemMenuOpen"
       :training-menu-open="trainingMenuOpen"
@@ -771,6 +800,8 @@ onUnmounted(() => {
       @open-all-library="setCurrentView('attachment-management')"
       @toggle-node="toggleNode"
       @choose-category="chooseCategory"
+      @toggle-vector-menu="toggleVectorMenu"
+      @open-vector-view="openVectorView"
       @toggle-project-menu="toggleProjectMenu"
       @open-project-view="openProjectView"
       @toggle-system-menu="toggleSystemMenu"

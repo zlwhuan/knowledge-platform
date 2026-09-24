@@ -9,6 +9,7 @@ public record CategoryResponse(
         String description,
         Long parentId,
         Integer sortOrder,
+        String path,
         List<CategoryResponse> children
 ) {
 }

@@ -39,14 +39,14 @@ public class CategoryServiceImpl implements CategoryService {
         Comparator<Category> comparator = Comparator.comparing(Category::getSortOrder).thenComparing(Category::getName);
         roots.sort(comparator);
         childrenMap.values().forEach(list -> list.sort(comparator));
-        return roots.stream().map(category -> toResponse(category, childrenMap)).toList();
+        return roots.stream().map(category -> toResponse(category, childrenMap, category.getName())).toList();
     }
 
     @Override
     public CategoryResponse create(CategoryRequest request) {
         Category category = new Category();
         apply(category, request);
-        return toResponse(categoryRepository.save(category), new HashMap<>());
+        return toResponse(categoryRepository.save(category), new HashMap<>(), category.getName());
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("分类不存在"));
         apply(category, request);
-        return toResponse(categoryRepository.save(category), new HashMap<>());
+        return toResponse(categoryRepository.save(category), new HashMap<>(), category.getName());
     }
 
     @Override
@@ -77,9 +77,10 @@ public class CategoryServiceImpl implements CategoryService {
         category.setUpdatedAt(LocalDateTime.now());
     }
 
-    private CategoryResponse toResponse(Category category, Map<Long, List<Category>> childrenMap) {
+    private CategoryResponse toResponse(Category category, Map<Long, List<Category>> childrenMap, String path) {
+        String currentPath = path == null || path.isBlank() ? category.getName() : path;
         List<CategoryResponse> children = childrenMap.getOrDefault(category.getId(), List.of()).stream()
-                .map(child -> toResponse(child, childrenMap))
+                .map(child -> toResponse(child, childrenMap, currentPath + "/" + child.getName()))
                 .toList();
         return new CategoryResponse(
                 category.getId(),
@@ -88,6 +89,7 @@ public class CategoryServiceImpl implements CategoryService {
                 category.getDescription(),
                 category.getParent() == null ? null : category.getParent().getId(),
                 category.getSortOrder(),
+                currentPath,
                 children
         );
     }

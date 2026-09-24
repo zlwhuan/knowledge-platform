@@ -3,6 +3,7 @@ package com.company.knowledge.service.impl;
 import com.company.knowledge.dto.RagSearchResult;
 import com.company.knowledge.entity.Attachment;
 import com.company.knowledge.entity.KnowledgeItem;
+import com.company.knowledge.service.KnowledgeItemVectorTextBuilder;
 import com.company.knowledge.service.RagService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,10 +37,26 @@ public class RagServiceImpl implements RagService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final KnowledgeItemVectorTextBuilder textBuilder;
 
-    public RagServiceImpl() {
+    public RagServiceImpl(KnowledgeItemVectorTextBuilder textBuilder) {
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
+        this.textBuilder = textBuilder;
+    }
+
+    /** 统一元数据：增量同步与全库重建共用（列注释文本 + 分类树） */
+    private void putItemMeta(Map<String, Object> request, KnowledgeItem item) {
+        request.put("item_id", item.getId().toString());
+        request.put("title", item.getTitle() != null ? item.getTitle() : "");
+        // 列注释 + 列值，与全库重建完全一致
+        request.put("content", textBuilder.build(item));
+        request.put("category", textBuilder.categoryPath(item));
+        request.put("project", textBuilder.projectName(item));
+        request.put("tags", parseTags(item.getTags()));
+        request.put("source", item.getSource() != null ? item.getSource() : "");
+        // doc_type 用根分类名，替代旧 products/faq/meeting/competitor
+        request.put("doc_type", textBuilder.rootCategoryName(item));
     }
 
     @Override
@@ -50,19 +67,10 @@ public class RagServiceImpl implements RagService {
         }
 
         try {
-            // Build sync request
             Map<String, Object> request = new HashMap<>();
-            request.put("item_id", item.getId().toString());
-            request.put("title", item.getTitle());
-            request.put("content", item.getContentMarkdown() != null ? item.getContentMarkdown() : "");
-            request.put("category", item.getCategory() != null ? item.getCategory().getName() : "");
-            request.put("project", item.getProject() != null ? item.getProject().getName() : "");
-            request.put("tags", parseTags(item.getTags()));
-            request.put("source", item.getSource() != null ? item.getSource() : "");
-            request.put("doc_type", "products");
+            putItemMeta(request, item);
             request.put("attachments", Collections.emptyList());
 
-            // Call RAG service
             String url = ragServiceUrl + "/api/rag/sync";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -89,31 +97,25 @@ public class RagServiceImpl implements RagService {
         }
 
         try {
-            // Build sync request with attachments
             Map<String, Object> request = new HashMap<>();
-            request.put("item_id", item.getId().toString());
-            request.put("title", item.getTitle());
-            request.put("content", item.getContentMarkdown() != null ? item.getContentMarkdown() : "");
-            request.put("category", item.getCategory() != null ? item.getCategory().getName() : "");
-            request.put("project", item.getProject() != null ? item.getProject().getName() : "");
-            request.put("tags", parseTags(item.getTags()));
-            request.put("source", item.getSource() != null ? item.getSource() : "");
-            request.put("doc_type", "products");
+            putItemMeta(request, item);
 
-            // Build attachments list
             List<Map<String, Object>> attachmentsList = new ArrayList<>();
             for (AttachmentContent att : attachments) {
                 if (att.getContent() != null && !att.getContent().trim().isEmpty()) {
                     Map<String, Object> attMap = new HashMap<>();
+                    attMap.put("attachment_id", att.getAttachmentId() != null ? String.valueOf(att.getAttachmentId()) : "");
                     attMap.put("filename", att.getFilename());
-                    attMap.put("content", att.getContent());
+                    attMap.put("file_path", att.getFilePath() != null ? att.getFilePath() : "");
+                    // 附件文本也走列注释格式（含分类树）
+                    attMap.put("content", textBuilder.buildAttachmentText(
+                            item, stubAttachment(att), att.getContent()));
                     attMap.put("content_type", att.getContentType());
                     attachmentsList.add(attMap);
                 }
             }
             request.put("attachments", attachmentsList);
 
-            // Call RAG service
             String url = ragServiceUrl + "/api/rag/sync";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -124,7 +126,7 @@ public class RagServiceImpl implements RagService {
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> body = response.getBody();
-                Integer chunksCreated = (Integer) body.get("chunks_created");
+                Integer chunksCreated = body != null ? (Integer) body.get("chunks_created") : null;
                 logger.info("Successfully synced knowledge item {} with {} attachments ({} chunks) to vector index",
                         item.getId(), attachments.size(), chunksCreated);
             } else {
@@ -143,19 +145,18 @@ public class RagServiceImpl implements RagService {
         }
 
         try {
-            // Build sync request for attachment
+            KnowledgeItem item = attachment.getItem();
             Map<String, Object> request = new HashMap<>();
             request.put("item_id", "attachment_" + attachment.getId());
             request.put("title", attachment.getOriginalFileName());
-            request.put("content", content);
-            request.put("category", attachment.getItem() != null ? 
-                    (attachment.getItem().getCategory() != null ? attachment.getItem().getCategory().getName() : "") : "");
+            request.put("content", textBuilder.buildAttachmentText(item, attachment, content));
+            request.put("category", item != null ? textBuilder.categoryPath(item) : "");
+            request.put("project", item != null ? textBuilder.projectName(item) : "");
             request.put("tags", Collections.emptyList());
             request.put("source", "attachment");
-            request.put("doc_type", "attachment");
+            request.put("doc_type", item != null ? textBuilder.rootCategoryName(item) : "attachment");
             request.put("attachments", Collections.emptyList());
 
-            // Call RAG service
             String url = ragServiceUrl + "/api/rag/sync";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -172,6 +173,13 @@ public class RagServiceImpl implements RagService {
         } catch (Exception e) {
             logger.error("Failed to sync attachment {}", attachment.getId(), e);
         }
+    }
+
+    private Attachment stubAttachment(AttachmentContent att) {
+        Attachment stub = new Attachment();
+        stub.setOriginalFileName(att.getFilename());
+        stub.setContentType(att.getContentType());
+        return stub;
     }
 
     @Override
@@ -279,13 +287,15 @@ public class RagServiceImpl implements RagService {
         }
 
         try {
-            String url = ragServiceUrl + "/api/rag/rebuild";
+            // keep_existing_platform=true：vault 重建时保留已同步的平台切块
+            Map<String, Object> request = new HashMap<>();
+            request.put("keep_existing_platform", true);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
             ResponseEntity<Map> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, Map.class);
+                    ragServiceUrl + "/api/rag/rebuild-full", HttpMethod.POST, entity, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 logger.info("Successfully triggered full index rebuild");
@@ -326,6 +336,139 @@ public class RagServiceImpl implements RagService {
         } catch (Exception e) {
             logger.error("Failed to get RAG status", e);
             return "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}";
+        }
+    }
+
+    @Override
+    public Map<String, Object> getStatusMap() {
+        if (!enabled) {
+            Map<String, Object> disabled = new HashMap<>();
+            disabled.put("status", "disabled");
+            disabled.put("enabled", false);
+            return disabled;
+        }
+        try {
+            String url = ragServiceUrl + "/api/rag/status";
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
+            body.put("enabled", true);
+            body.put("serviceUrl", ragServiceUrl);
+            return body;
+        } catch (Exception e) {
+            logger.error("Failed to get RAG status map", e);
+            Map<String, Object> err = new HashMap<>();
+            err.put("status", "error");
+            err.put("enabled", true);
+            err.put("message", e.getMessage());
+            err.put("serviceUrl", ragServiceUrl);
+            return err;
+        }
+    }
+
+    @Override
+    public Map<String, Object> listSources(String category, String docType) {
+        if (!enabled) {
+            return Map.of("total", 0, "sources", List.of());
+        }
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(ragServiceUrl + "/api/rag/sources");
+            if (category != null && !category.isEmpty()) builder.queryParam("category", category);
+            if (docType != null && !docType.isEmpty()) builder.queryParam("doc_type", docType);
+            ResponseEntity<Map> response = restTemplate.getForEntity(builder.toUriString(), Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("total", 0, "sources", List.of());
+        } catch (Exception e) {
+            logger.error("Failed to list sources", e);
+            return Map.of("total", 0, "sources", List.of(), "error", String.valueOf(e.getMessage()));
+        }
+    }
+
+    @Override
+    public Map<String, Object> listChunks(String path, String q, String docType, int limit, int offset) {
+        if (!enabled) {
+            return Map.of("total", 0, "items", List.of());
+        }
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(ragServiceUrl + "/api/rag/chunks")
+                    .queryParam("limit", limit)
+                    .queryParam("offset", offset);
+            if (path != null && !path.isEmpty()) builder.queryParam("path", path);
+            if (q != null && !q.isEmpty()) builder.queryParam("q", q);
+            if (docType != null && !docType.isEmpty()) builder.queryParam("doc_type", docType);
+            ResponseEntity<Map> response = restTemplate.getForEntity(builder.toUriString(), Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("total", 0, "items", List.of());
+        } catch (Exception e) {
+            logger.error("Failed to list chunks", e);
+            return Map.of("total", 0, "items", List.of(), "error", String.valueOf(e.getMessage()));
+        }
+    }
+
+    @Override
+    public Map<String, Object> getChunk(String chunkId) {
+        if (!enabled) {
+            throw new IllegalStateException("RAG service is disabled");
+        }
+        try {
+            String url = ragServiceUrl + "/api/rag/chunks/" + chunkId;
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of();
+        } catch (Exception e) {
+            logger.error("Failed to get chunk {}", chunkId, e);
+            throw new IllegalStateException("获取切块失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Object> deleteChunk(String chunkId) {
+        if (!enabled) {
+            throw new IllegalStateException("RAG service is disabled");
+        }
+        try {
+            String url = ragServiceUrl + "/api/rag/chunks/" + chunkId;
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.DELETE, new HttpEntity<>(new HttpHeaders()), Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("status", "success");
+        } catch (Exception e) {
+            logger.error("Failed to delete chunk {}", chunkId, e);
+            throw new IllegalStateException("删除切块失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Object> deleteSource(String path) {
+        if (!enabled) {
+            throw new IllegalStateException("RAG service is disabled");
+        }
+        try {
+            String url = UriComponentsBuilder.fromUriString(ragServiceUrl + "/api/rag/sources")
+                    .queryParam("path", path)
+                    .toUriString();
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.DELETE, new HttpEntity<>(new HttpHeaders()), Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("status", "success");
+        } catch (Exception e) {
+            logger.error("Failed to delete source {}", path, e);
+            throw new IllegalStateException("移出索引失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Object> reindex(String path, String mode) {
+        if (!enabled) {
+            throw new IllegalStateException("RAG service is disabled");
+        }
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("path", path == null ? "" : path);
+            request.put("mode", mode == null || mode.isEmpty() ? "source" : mode);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    ragServiceUrl + "/api/rag/reindex", HttpMethod.POST, entity, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of("status", "success");
+        } catch (Exception e) {
+            logger.error("Failed to reindex path={}", path, e);
+            throw new IllegalStateException("重建索引失败: " + e.getMessage());
         }
     }
 

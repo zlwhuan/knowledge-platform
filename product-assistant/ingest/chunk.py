@@ -26,6 +26,13 @@ class Chunk:
     section: str
     page: str
     text: str
+    # 结构化出处：item=条目正文，attachment=附件内文
+    source_kind: str = "item"
+    item_id: str = ""
+    attachment_id: str = ""
+    filename: str = ""
+    file_path: str = ""
+    locator: str = ""
 
 
 def _is_table_line(line: str) -> bool:
@@ -61,6 +68,12 @@ def _split_long(text: str, max_chars: int = MAX_CHARS, min_chars: int = MIN_CHAR
 
 
 def _make_chunk(doc: LoadedDoc, section: str, page: str, piece: str) -> Chunk:
+    source_kind = getattr(doc, "source_kind", "item") or "item"
+    item_id = getattr(doc, "item_id", "") or ""
+    attachment_id = getattr(doc, "attachment_id", "") or ""
+    filename = getattr(doc, "filename", "") or ""
+    file_path = getattr(doc, "file_path", "") or ""
+    locator = build_locator(source_kind, filename, section, page, doc.title)
     return Chunk(
         chunk_id=chunk_id(doc.rel_path, section, piece),
         rel_path=doc.rel_path,
@@ -70,7 +83,37 @@ def _make_chunk(doc: LoadedDoc, section: str, page: str, piece: str) -> Chunk:
         section=section,
         page=page,
         text=piece,
+        source_kind=source_kind,
+        item_id=item_id,
+        attachment_id=attachment_id,
+        filename=filename,
+        file_path=file_path,
+        locator=locator,
     )
+
+
+def build_locator(
+    source_kind: str,
+    filename: str,
+    section: str,
+    page: str,
+    title: str = "",
+) -> str:
+    """人类可读的引用位置：条目正文 · 章节  /  附件 xxx.pdf · p.3 · 章节"""
+    parts: list[str] = []
+    if source_kind == "attachment":
+        parts.append(f"附件 {filename}" if filename else "附件")
+        if page:
+            parts.append(f"p.{page}")
+    else:
+        parts.append("条目正文")
+        if page:
+            parts.append(f"p.{page}")
+    # 章节名若只是标题/文件名重复，不再拼进去
+    skip = {title or "", filename or "", f"{title} - {filename}".strip(" -")}
+    if section and section not in skip:
+        parts.append(section)
+    return " · ".join(parts)
 
 
 def chunk_document(doc: LoadedDoc) -> list[Chunk]:
