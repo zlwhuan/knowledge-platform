@@ -3,7 +3,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { api } from '../services/api'
 
-const emit = defineEmits(['open-item'])
+const emit = defineEmits(['open-item', 'open-preview'])
 
 const loading = ref(false)
 const hasSearched = ref(false)
@@ -84,36 +84,57 @@ async function doSearch() {
   }
 }
 
-function itemIdOf(row) {
-  if (row.item_id) return Number(row.item_id)
-  const match = String(row.path || '').match(/knowledge_items\/(?:attachment_)?(\d+)/)
-  return match ? Number(match[1]) : null
-}
-
-function attachmentIdOf(row) {
-  if (row.attachment_id) return Number(row.attachment_id)
-  const match = String(row.path || '').match(/attachments\/\d+\/(\d+)\//)
-  return match ? Number(match[1]) : null
+function parseSourceRef(row) {
+  const path = String(row.path || '')
+  // knowledge_items/attachment_61 → 附件 61（不是知识条目）
+  let m = path.match(/^knowledge_items\/attachment_(\d+)/)
+  if (m) return { kind: 'attachment', attachmentId: Number(m[1]), itemId: null }
+  // attachments/{itemId}/{attId}/{filename} → 附件 attId，条目 itemId
+  m = path.match(/^attachments\/(\d+)\/(\d+)\//)
+  if (m) return { kind: 'attachment', itemId: Number(m[1]), attachmentId: Number(m[2]) }
+  // knowledge_items/9 → 条目 9
+  m = path.match(/^knowledge_items\/(\d+)/)
+  if (m) {
+    return {
+      kind: 'item',
+      itemId: Number(m[1]),
+      attachmentId: Number(row.attachment_id || '') || null,
+    }
+  }
+  if (row.attachment_id && Number.isFinite(Number(row.attachment_id))) {
+    return {
+      kind: 'attachment',
+      attachmentId: Number(row.attachment_id),
+      itemId: row.item_id ? Number(row.item_id) : null,
+    }
+  }
+  if (row.item_id && /^\d+$/.test(String(row.item_id))) {
+    return { kind: 'item', itemId: Number(row.item_id), attachmentId: null }
+  }
+  return { kind: 'unknown' }
 }
 
 function openSource(row) {
-  const itemId = itemIdOf(row)
-  if (itemId) {
-    emit('open-item', itemId)
+  const ref = parseSourceRef(row)
+  if (ref.kind === 'attachment' && ref.attachmentId) {
+    emit('open-preview', { id: ref.attachmentId })
+    return
+  }
+  if (ref.kind === 'item' && ref.itemId) {
+    emit('open-item', ref.itemId)
     return
   }
   ElMessage.info(`来源路径：${row.path || '未知'}`)
 }
 
 function openAttachment(row) {
-  const attId = attachmentIdOf(row)
+  const ref = parseSourceRef(row)
+  const attId = ref.attachmentId || attachmentIdOf(row)
   if (!attId) {
     ElMessage.info('该命中不在附件中')
     return
   }
-  // 与附件管理一致的下载/预览入口
-  const base = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$/, '')
-  window.open(`${base}/api/attachments/${attId}/download`, '_blank')
+  emit('open-preview', { id: attId })
 }
 
 function locatorText(row) {
@@ -185,7 +206,7 @@ onMounted(() => {
             <code class="vs-path">{{ row.file_path || row.path }}</code>
             <div class="vs-actions">
               <el-button
-                v-if="row.source_kind === 'attachment' || row.attachment_id"
+                v-if="row.source_kind === 'attachment' || row.attachment_id || String(row.path || '').includes('attachment_')"
                 size="small"
                 text
                 type="warning"

@@ -1,5 +1,5 @@
 import { useRouter } from 'vue-router'
-import { syncViewToBrowser } from '../services/browserHistorySync'
+import { pushView, pathForView } from '../services/uiHistory'
 
 export function useShellNavigation({
   currentView,
@@ -13,38 +13,13 @@ export function useShellNavigation({
   const router = useRouter()
 
   function syncRoute(view) {
-    const routeMap = {
-      'home': '/',
-      'library': '/library',
-      'compose': '/compose',
-      'project-tracker': '/project-tracker',
-      'project-sales': '/project-sales',
-      'project-presales': '/project-presales',
-      'project-delivery-ops': '/project-delivery-ops',
-      'project-finance': '/project-finance',
-      'project-gantt': '/project-gantt',
-      'project-weekly-progress': '/project-weekly-progress',
-      'customers': '/customers',
-      'training': '/training',
-      'assessment': '/assessment',
-      'attachment-management': '/attachment-management',
-      'vector-search': '/vector-search',
-      'vector-maintenance': '/vector-maintenance',
-      'vector-health': '/vector-health',
-      'settings': '/settings',
-      'dictionary-settings': '/dictionary-settings',
-      'users': '/users',
-      'roles': '/roles',
-      'preview-settings': '/preview-settings',
-      'system-overview': '/system-overview',
-    }
     // 内存路由：仅同步路径镜像，不碰浏览器 History
-    const path = routeMap[view]
+    const path = pathForView(view)
     if (path && router.currentRoute.value.path !== path) {
       router.push(path).catch(() => {})
     }
-    // 浏览器前进/后退：仅在窗口可见时写入
-    syncViewToBrowser(view)
+    // 浏览器前进/后退：写入完整 UI 状态（切视图时清掉弹窗）
+    pushView(view)
   }
 
   function closeAllSubmenus() {
@@ -76,6 +51,10 @@ export function useShellNavigation({
     }
     if (view === 'vector-search' || view === 'vector-maintenance' || view === 'vector-health') {
       expandOnly('library')
+      return
+    }
+    if (view === 'skill-assistant') {
+      closeAllSubmenus()
       return
     }
     if (String(view).startsWith('project')) {

@@ -385,11 +385,9 @@ const {
   previewLoading,
   preview,
   onlyOfficeMountRef,
-  previewEngineLabel,
-  previewHint,
   previewFrameUrl,
   canUseOnlyOfficeComponent,
-  openPreview,
+  openPreview: openPreviewBase,
   reloadPreview,
   destroyOnlyOfficeEditor,
 } = useAttachmentPreview({
@@ -534,7 +532,7 @@ function openSystemView(target) {
   openSystemViewByNavigation(target, logout)
 }
 const {
-  openLibraryDetail: openDetail,
+  openLibraryDetail: openDetailBase,
   editLibraryItem,
   removeAttachment,
   createProjectRelatedItem,
@@ -553,14 +551,50 @@ const {
   confirmDelete: askDeleteConfirm,
 })
 
+/** 打开知识条目详情（写入历史，支持后退关闭） */
+async function openDetail(item) {
+  await openDetailBase(item)
+  const id = item?.id || item
+  if (id && detailDialogOpen.value) {
+    pushDetail(currentView.value === 'compose' ? 'library' : currentView.value, Number(id))
+  }
+}
+
+/** 关闭详情：走 history.back，与浏览器后退一致 */
+function closeDetailDialog() {
+  if (detailDialogOpen.value) {
+    detailDialogOpen.value = false
+    popOverlay()
+  }
+}
+
+/** 打开附件预览（叠在详情之上） */
+async function openPreview(attachment) {
+  await openPreviewBase(attachment)
+  if (preview.open && attachment?.id) {
+    pushPreview(Number(attachment.id))
+  }
+}
+
+function closePreview() {
+  if (preview.open) {
+    preview.open = false
+    popOverlay()
+  }
+}
+
 function startCreateContent() {
   startLibraryCreateContent(selectedCategoryId.value)
   setCurrentView('compose')
+  pushCompose(null)
 }
 async function fillForm(item) {
   await editLibraryItem(item)
-  setCurrentView('compose')
   detailDialogOpen.value = false
+  preview.open = false
+  currentView.value = 'compose'
+  libraryMenuOpen.value = true
+  pushCompose(item?.id || form.id || null)
 }
 async function saveLibraryItem() {
   const savedId = await saveItem()
@@ -623,53 +657,6 @@ async function deleteSystemDictionary(id) {
   }
 }
 
-function handleGlobalEscape(event) {
-  if (event.key !== 'Escape') return
-
-  // Markdown 编辑器处于“浏览器全屏（pageFullscreen）”时：
-  // ESC 只退出编辑器浏览器全屏，不触发页面级返回。
-  const mdEditorFullscreen = typeof document !== 'undefined'
-    ? document.querySelector('.md-editor.md-editor-fullscreen')
-    : null
-  if (mdEditorFullscreen) {
-    event.preventDefault()
-    event.stopPropagation()
-    mdEditorFullscreen.classList.remove('md-editor-fullscreen')
-    if (typeof document !== 'undefined' && document.body?.style?.overflow === 'hidden') {
-      document.body.style.overflow = ''
-    }
-    return
-  }
-
-  if (preview.open) {
-    preview.open = false
-    return
-  }
-  if (detailDialogOpen.value) {
-    detailDialogOpen.value = false
-    return
-  }
-  if (confirmDialog.open) {
-    closeDeleteConfirm(false)
-    return
-  }
-  if (batchEditDialog.open) {
-    resetBatchEditDialog()
-    return
-  }
-  if (projectProgressDialogOpen.value) {
-    projectProgressDialogOpen.value = false
-    return
-  }
-  if (projectFormDialogOpen.value) {
-    projectFormDialogOpen.value = false
-    return
-  }
-  if (currentView.value === 'compose') {
-    currentView.value = 'library'
-  }
-}
-
 async function login() {
   loginError.value = ''
   try {
@@ -717,13 +704,22 @@ async function bootstrap() {
 }
 const router = useRouter()
 const route = useRoute()
-import { initBrowserHistory, disposeBrowserHistory } from './services/browserHistorySync'
+import { initBrowserHistory, disposeBrowserHistory, isApplyingFromBrowser } from './services/browserHistorySync'
+import {
+  pushView,
+  pushDetail,
+  pushPreview,
+  pushCompose,
+  popOverlay,
+  adoptUiState,
+  getUiState,
+} from './services/uiHistory'
 
 // 浏览器前进/后退 → 站内视图（由 browserHistorySync 在可见时维护 hash）
 const viewFromRoute = computed(() => route.meta?.view || (route.path === '/' ? 'home' : null))
 
 function applyViewFromBrowser(view) {
-  if (!view || view === currentView.value || !auth.token) return
+  if (!view || !auth.token) return
   if (view === 'project-weekly-progress' || String(view).startsWith('project')) {
     openProjectView(view)
     return
@@ -749,7 +745,117 @@ function applyViewFromBrowser(view) {
     currentView.value = view
     return
   }
+  if (view === 'skill-assistant') {
+    libraryMenuOpen.value = false
+    vectorMenuOpen.value = false
+    projectMenuOpen.value = false
+    systemMenuOpen.value = false
+    trainingMenuOpen.value = false
+    currentView.value = view
+    return
+  }
+  if (view === 'compose') {
+    libraryMenuOpen.value = true
+    currentView.value = view
+    return
+  }
   setCurrentView(view)
+}
+
+/** 浏览器前进/后退：应用完整 UI 状态（视图 + 弹窗） */
+async function applyUiStateFromBrowser(state) {
+  if (!auth.token) return
+  adoptUiState(state)
+  const view = state.view || 'home'
+  if (view !== currentView.value) {
+    applyViewFromBrowser(view)
+  }
+
+  // 详情弹窗
+  if (state.detailId) {
+    if (!detailDialogOpen.value || selectedItem.value?.id !== state.detailId) {
+      await openDetailBase(state.detailId)
+    }
+    detailDialogOpen.value = true
+  } else if (detailDialogOpen.value) {
+    detailDialogOpen.value = false
+  }
+
+  // 预览弹窗
+  if (state.previewId) {
+    if (!preview.open || preview.attachmentId !== state.previewId) {
+      await openPreviewBase({ id: state.previewId })
+    }
+  } else if (preview.open) {
+    preview.open = false
+    destroyOnlyOfficeEditor()
+  }
+
+  // 编辑页
+  if (view === 'compose' && state.composeId) {
+    if (form.id !== state.composeId) {
+      await editLibraryItem({ id: state.composeId })
+    }
+  }
+
+  // 技能助手侧栏（由组件监听 skillDetailId 自行恢复）
+  if (!state.skillDetailId && view !== 'skill-assistant') {
+    // 面板关闭由 SkillAssistantView 处理
+  }
+}
+
+function handleGlobalEscape(event) {
+  if (event.key !== 'Escape') return
+
+  // Markdown 编辑器处于“浏览器全屏（pageFullscreen）”时：
+  // ESC 只退出编辑器浏览器全屏，不触发页面级返回。
+  const mdEditorFullscreen = typeof document !== 'undefined'
+    ? document.querySelector('.md-editor.md-editor-fullscreen')
+    : null
+  if (mdEditorFullscreen) {
+    event.preventDefault()
+    event.stopPropagation()
+    mdEditorFullscreen.classList.remove('md-editor-fullscreen')
+    if (typeof document !== 'undefined' && document.body?.style?.overflow === 'hidden') {
+      document.body.style.overflow = ''
+    }
+    return
+  }
+
+  if (preview.open) {
+    closePreview()
+    return
+  }
+  if (detailDialogOpen.value) {
+    closeDetailDialog()
+    return
+  }
+  if (confirmDialog.open) {
+    closeDeleteConfirm(false)
+    return
+  }
+  if (batchEditDialog.open) {
+    resetBatchEditDialog()
+    return
+  }
+  if (projectProgressDialogOpen.value) {
+    projectProgressDialogOpen.value = false
+    return
+  }
+  if (projectFormDialogOpen.value) {
+    projectFormDialogOpen.value = false
+    return
+  }
+  if (currentView.value === 'compose') {
+    currentView.value = 'library'
+    pushView('library')
+    return
+  }
+  // 技能侧栏详情关闭（后退一层）
+  if (currentView.value === 'skill-assistant' && getUiState().skillDetailId) {
+    popOverlay()
+    return
+  }
 }
 
 onMounted(async () => {
@@ -757,16 +863,18 @@ onMounted(async () => {
   restoreLibraryTreeState()
   window.addEventListener('keydown', handleGlobalEscape)
 
-  // 绑定浏览器历史桥（最小化时不写 History，避免 Edge 顶窗）
-  const initialFromHash = initBrowserHistory((view) => {
-    if (auth.token) applyViewFromBrowser(view)
+  // 绑定浏览器历史桥：前进/后退恢复「视图 + 弹窗」完整状态
+  const initial = initBrowserHistory((state) => {
+    if (auth.token) applyUiStateFromBrowser(state)
   })
 
-  const initialView = initialFromHash || viewFromRoute.value
-  if (initialView && initialView !== 'home' && auth.token) {
-    applyViewFromBrowser(initialView)
+  adoptUiState(initial)
+  if (auth.token && initial && (initial.view !== 'home' || initial.detailId || initial.previewId || initial.composeId)) {
+    await bootstrap()
+    await applyUiStateFromBrowser(initial)
+  } else if (auth.token) {
+    await bootstrap()
   }
-  if (auth.token) await bootstrap()
 })
 onUnmounted(() => {
   destroyOnlyOfficeEditor()
@@ -1002,7 +1110,17 @@ onUnmounted(() => {
       @delete-dictionary="deleteSystemDictionary"
     />
 
-    <LibraryDetailDialog v-model="detailDialogOpen" :item="selectedItem" :format-date-time="formatDateTime" :format-file-size="formatFileSize" :render-markdown="renderMarkdown" :api-base-url="apiBaseUrl" :can-delete-content="currentRolePermissions.canDeleteContent" @edit="fillForm" @open-preview="openPreview" @delete-attachment="handleRemoveAttachment" />
+    <LibraryDetailDialog
+      :model-value="detailDialogOpen"
+      :item="selectedItem"
+      :format-date-time="formatDateTime"
+      :format-file-size="formatFileSize"
+      :render-markdown="renderMarkdown"
+      :api-base-url="apiBaseUrl"
+      @update:model-value="(v) => { if (!v) closeDetailDialog(); else detailDialogOpen = true }"
+      @edit="fillForm"
+      @open-preview="openPreview"
+    />
     <LibraryBatchEditDialog v-model="batchEditDialog.open" :batch-edit-dialog="batchEditDialog" :selected-count="selectedItemIds.length" :flat-category-options="flatCategoryOptions" @apply="applyLibraryBatchEdit" @update:model-value="(value) => { if (!value) resetBatchEditDialog(); else batchEditDialog.open = value }" />
     <el-dialog
       v-model="confirmDialog.open"
@@ -1029,20 +1147,16 @@ onUnmounted(() => {
     </el-dialog>
     <el-dialog v-model="preview.open" fullscreen destroy-on-close append-to-body :z-index="300000" class="preview-dialog-shell">
       <template #header>
-        <div class="preview-header">
-          <div>
-            <div class="preview-title-row">
-              <h3>{{ preview.fileName }}</h3>
-              <el-tag :type="preview.kind === 'onlyoffice' ? 'success' : preview.kind === 'pdf' ? 'warning' : 'info'" effect="light">{{ previewEngineLabel }}</el-tag>
-            </div>
-            <p>{{ preview.message || '已根据附件类型选择预览方式。' }}</p>
-            <p class="preview-hint">{{ previewHint }}</p>
+        <div class="preview-bar">
+          <div class="preview-bar-left">
+            <span class="preview-bar-name" :title="preview.fileName">{{ preview.fileName }}</span>
+            <span class="preview-bar-meta">{{ preview.contentType || '-' }} · {{ preview.fileSize || '-' }}</span>
           </div>
-          <el-space>
-            <el-button @click="preview.open = false">返回详情</el-button>
-            <el-button @click="reloadPreview" :loading="previewLoading">刷新预览</el-button>
-            <el-button tag="a" :href="preview.downloadUrl || preview.url" target="_blank">打开原文件</el-button>
-          </el-space>
+          <div class="preview-bar-actions">
+            <el-button text size="small" :loading="previewLoading" @click="reloadPreview">刷新</el-button>
+            <el-button text size="small" tag="a" :href="preview.downloadUrl || preview.url" target="_blank">下载</el-button>
+            <el-button text size="small" @click="closePreview">关闭</el-button>
+          </div>
         </div>
       </template>
       <div class="preview-stage">
@@ -1055,12 +1169,7 @@ onUnmounted(() => {
         <audio v-else-if="preview.kind === 'audio'" controls class="preview-audio" :src="preview.url"></audio>
         <embed v-else-if="preview.kind === 'pdf'" class="preview-frame" :src="previewFrameUrl" type="application/pdf" />
         <iframe v-else-if="isPreviewFrameKind(preview.kind)" class="preview-frame" :src="previewFrameUrl" :title="preview.fileName" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
-        <el-empty v-else description="当前文件暂不支持直接预览，请打开原文件查看。" />
-      </div>
-      <div class="preview-meta">
-        <el-tag effect="plain">类型：{{ preview.contentType }}</el-tag>
-        <el-tag effect="plain">大小：{{ preview.fileSize }}</el-tag>
-        <el-tag effect="plain">上传时间：{{ preview.uploadedAt }}</el-tag>
+        <el-empty v-else description="当前文件暂不支持直接预览，请下载查看。" />
       </div>
     </el-dialog>
     <input ref="importInputRef" type="file" accept=".xlsx,.xls" style="display:none" @change="handleImport" />

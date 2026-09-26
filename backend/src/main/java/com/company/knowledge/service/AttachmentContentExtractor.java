@@ -88,6 +88,12 @@ public class AttachmentContentExtractor {
                 return extractExcelOld(path);
             } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xlsm")) {
                 return extractExcel(path);
+            } else if (fileName.endsWith(".html") || fileName.endsWith(".htm") || fileName.endsWith(".xhtml")) {
+                return extractHtml(path);
+            } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")
+                    || fileName.endsWith(".gif") || fileName.endsWith(".bmp") || fileName.endsWith(".webp")
+                    || fileName.endsWith(".tif") || fileName.endsWith(".tiff")) {
+                return extractImageOcr(path);
             } else {
                 logger.info("Unsupported attachment format for vectorization: {}", fileName);
                 return "";
@@ -185,6 +191,86 @@ public class AttachmentContentExtractor {
             }
         }
         return content.toString();
+    }
+
+    /**
+     * Extract content from an HTML file (.html / .htm / .xhtml)
+     */
+    private String extractHtml(Path path) throws IOException {
+        try {
+            String raw = Files.readString(path, StandardCharsets.UTF_8);
+            org.jsoup.nodes.Document doc = org.jsoup.Jsoup.parse(raw);
+            // 去掉脚本/样式，保留可见文本
+            doc.select("script, style, noscript, template").remove();
+            String title = doc.title();
+            String body = doc.body() != null ? doc.body().text() : doc.text();
+            if (title != null && !title.isBlank()) {
+                return (title.trim() + "\n\n" + body).trim();
+            }
+            return body == null ? "" : body.trim();
+        } catch (Exception e) {
+            logger.error("HTML extraction failed: {}", path, e);
+            return "";
+        }
+    }
+
+    /**
+     * Extract text from an image via RapidOCR（RAG 服务 /api/rag/ocr）。
+     * 服务不可用时回退本机 Tesseract；仍失败则跳过，不阻塞其他附件。
+     */
+    private String extractImageOcr(Path path) {
+        // 1) 优先走 RAG 服务 RapidOCR（中英、无需本机安装）
+        String viaRag = ocrViaRagService(path);
+        if (viaRag != null && !viaRag.isBlank()) {
+            return viaRag.trim();
+        }
+        // 2) 回退本机 Tesseract
+        try {
+            net.sourceforge.tess4j.Tesseract tesseract = new net.sourceforge.tess4j.Tesseract();
+            String tessData = System.getenv("TESSDATA_PREFIX");
+            if (tessData != null && !tessData.isBlank()) {
+                tesseract.setDatapath(tessData);
+            }
+            tesseract.setLanguage("chi_sim+eng");
+            String text = tesseract.doOCR(path.toFile());
+            return text == null ? "" : text.trim();
+        } catch (Throwable e) {
+            logger.info("Image OCR skipped for {} (RAG OCR empty, Tesseract unavailable: {})",
+                    path.getFileName(), e.getMessage());
+            return "";
+        }
+    }
+
+    /** 调用 product-assistant RAG 服务做图片 OCR */
+    private String ocrViaRagService(Path path) {
+        String ragUrl = System.getenv("RAG_SERVICE_URL");
+        if (ragUrl == null || ragUrl.isBlank()) {
+            ragUrl = "http://localhost:8081";
+        }
+        String url = ragUrl.replaceAll("/+$", "") + "/api/rag/ocr";
+        try {
+            org.springframework.core.io.FileSystemResource resource =
+                    new org.springframework.core.io.FileSystemResource(path.toFile());
+            org.springframework.util.LinkedMultiValueMap<String, Object> form =
+                    new org.springframework.util.LinkedMultiValueMap<>();
+            form.add("file", resource);
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
+            org.springframework.web.client.RestTemplate rest = new org.springframework.web.client.RestTemplate();
+            org.springframework.http.ResponseEntity<String> resp = rest.postForEntity(
+                    url,
+                    new org.springframework.http.HttpEntity<>(form, headers),
+                    String.class);
+            if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+                return "";
+            }
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode node = mapper.readTree(resp.getBody());
+            return node.path("text").asText("");
+        } catch (Exception e) {
+            logger.debug("RAG OCR unavailable for {}: {}", path.getFileName(), e.getMessage());
+            return "";
+        }
     }
 
     /**

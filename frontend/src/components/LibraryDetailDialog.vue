@@ -6,10 +6,9 @@ defineProps({
   formatFileSize: { type: Function, required: true },
   renderMarkdown: { type: Function, required: true },
   apiBaseUrl: { type: String, required: true },
-  canDeleteContent: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue', 'edit', 'open-preview', 'delete-attachment'])
+const emit = defineEmits(['update:modelValue', 'edit', 'open-preview'])
 </script>
 
 <template>
@@ -53,7 +52,6 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview', 'delete-a
             <el-space>
               <el-button link type="primary" @click="emit('open-preview', attachment)">预览</el-button>
               <el-button link :href="`${apiBaseUrl}/attachments/${attachment.id}/download`" target="_blank">下载</el-button>
-              <el-button v-if="canDeleteContent" link type="danger" @click="emit('delete-attachment', attachment)">删除</el-button>
             </el-space>
           </div>
         </div>

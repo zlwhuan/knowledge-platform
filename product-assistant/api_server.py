@@ -21,7 +21,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File
 from pydantic import BaseModel, Field
 
 from ingest.embed import (
@@ -197,6 +197,36 @@ def reload_index() -> RagIndex:
         return _index
 
 
+# ---- 图片 OCR（RapidOCR，中英混合） ----
+_ocr_engine = None
+_ocr_lock = threading.Lock()
+
+
+def get_ocr_engine():
+    global _ocr_engine
+    with _ocr_lock:
+        if _ocr_engine is None:
+            from rapidocr_onnxruntime import RapidOCR
+            _ocr_engine = RapidOCR()
+        return _ocr_engine
+
+
+def ocr_image_file(path: Path) -> str:
+    engine = get_ocr_engine()
+    result, _ = engine(str(path))
+    if not result:
+        return ""
+    # result: [(box, text, score), ...]
+    lines = []
+    for item in result:
+        if not item:
+            continue
+        text = item[1] if len(item) > 1 else str(item)
+        if text and str(text).strip():
+            lines.append(str(text).strip())
+    return "\n".join(lines)
+
+
 def _warmup_async() -> None:
     """Async warmup of the embedder"""
     try:
@@ -237,6 +267,28 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+@app.post("/api/rag/ocr")
+async def ocr_upload(file: UploadFile = File(...)):
+    """图片 OCR：上传图片，返回识别文本（RapidOCR 中英）"""
+    import tempfile
+
+    suffix = Path(file.filename or "img").suffix or ".png"
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(await file.read())
+            tmp_path = Path(tmp.name)
+        text = ocr_image_file(tmp_path)
+        return {"status": "ok", "filename": file.filename, "text": text, "chars": len(text)}
+    except Exception as e:
+        logger.error("OCR failed for %s: %s", file.filename, e)
+        raise HTTPException(status_code=500, detail=f"OCR failed: {e}")
+    finally:
+        try:
+            tmp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 @app.get("/api/rag/status", response_model=StatusResponse)

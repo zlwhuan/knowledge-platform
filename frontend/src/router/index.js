@@ -23,6 +23,7 @@ const routes = [
   { path: '/vector-search', name: 'VectorSearch', component: stub, meta: { view: 'vector-search' } },
   { path: '/vector-maintenance', name: 'VectorMaintenance', component: stub, meta: { view: 'vector-maintenance' } },
   { path: '/vector-health', name: 'VectorHealth', component: stub, meta: { view: 'vector-health' } },
+  { path: '/skill-assistant', name: 'SkillAssistant', component: stub, meta: { view: 'skill-assistant' } },
   { path: '/settings', name: 'Settings', component: stub, meta: { view: 'settings' } },
   { path: '/dictionary-settings', name: 'DictionarySettings', component: stub, meta: { view: 'dictionary-settings' } },
   { path: '/users', name: 'Users', component: stub, meta: { view: 'users' } },

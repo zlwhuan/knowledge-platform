@@ -4042,28 +4042,81 @@ body.attachment-preview-open .medium-zoom-image--opened {
 
 /* 强制附件预览层级高于 md-editor-v3 的所有浮层（其最高可到 100001） */
 .preview-dialog-shell,
-.preview-dialog-shell.el-overlay,
-.preview-dialog-shell .el-overlay-dialog {
+.el-overlay:has(.preview-dialog-shell),
+.el-overlay:has(.preview-dialog-shell) .el-overlay-dialog {
   z-index: 300000 !important;
 }
 
+/* class 挂在 el-dialog 根节点上（不是后代），高度必须锁在根上 */
+.el-overlay:has(.preview-dialog-shell) {
+  overflow: hidden !important;
+}
+.el-overlay:has(.preview-dialog-shell) .el-overlay-dialog {
+  overflow: hidden !important;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: stretch;
+}
+.preview-dialog-shell {
+  overflow: hidden !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column;
+}
+.preview-dialog-shell .el-dialog__header {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  margin-right: 0;
+  border-bottom: none;
+}
+.preview-dialog-shell .el-dialog__headerbtn {
+  display: none;
+}
+.preview-dialog-shell .el-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+  padding: 0 12px 12px;
+}
+
+/* 文件区：吃满 body 剩余高度，滚动只在组件内 */
 .preview-stage {
-  min-height: calc(100vh - 220px);
-  display: grid;
-  place-items: center;
-  align-content: center;
-  border-radius: 20px;
-  background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
-  overflow: auto;
+  height: 100% !important;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: #eef2f7;
+  overflow: hidden;
+  padding: 0;
+}
+.preview-stage > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.preview-stage > .el-skeleton {
+  flex: 0 0 auto;
+  width: 100%;
   padding: 16px;
+  box-sizing: border-box;
 }
 
 .preview-image-stage {
   width: 100%;
-  height: calc(100vh - 220px);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: grab;
   user-select: none;
 }
@@ -4072,21 +4125,58 @@ body.attachment-preview-open .medium-zoom-image--opened {
   cursor: grabbing;
 }
 
-.detail-dialog-shell .el-dialog,
-.preview-dialog-shell .el-dialog {
+.detail-dialog-shell .el-dialog {
   overflow: hidden;
 }
 
-.detail-dialog-shell .el-dialog__header,
-.preview-dialog-shell .el-dialog__header {
+.detail-dialog-shell .el-dialog__header {
   padding: 14px 18px 0;
 }
 
-.detail-dialog-shell .el-dialog__body,
-.preview-dialog-shell .el-dialog__body {
+.detail-dialog-shell .el-dialog__body {
   height: calc(100vh - 112px);
   overflow: hidden;
   padding: 8px 18px 14px;
+}
+
+.preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.preview-bar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.preview-bar-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(52vw, 720px);
+}
+
+.preview-bar-meta {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.preview-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .detail-dialog-body {
@@ -4127,11 +4217,11 @@ body.attachment-preview-open .medium-zoom-image--opened {
 .preview-image {
   display: block;
   width: auto;
-  max-width: min(100%, 1600px);
+  max-width: 100%;
   height: auto;
-  max-height: calc(100vh - 220px);
+  max-height: 100%;
   object-fit: contain;
-  margin: 0 auto;
+  margin: auto;
   background: #fff;
   transform-origin: center center;
   transition: transform 0.04s linear;
@@ -4140,17 +4230,22 @@ body.attachment-preview-open .medium-zoom-image--opened {
 .preview-media,
 .preview-frame {
   width: 100%;
-  height: calc(100vh - 220px);
+  height: 100%;
   border: none;
   background: #fff;
+  display: block;
 }
 
 .preview-audio {
   width: min(960px, 100%);
+  margin: auto;
 }
 
-.preview-hint {
-  color: #7b8a9d;
+.onlyoffice-host {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
 }
 
 .el-table {
@@ -4602,10 +4697,7 @@ body.attachment-preview-open .medium-zoom-image--opened {
     --el-descriptions-table-layout: auto;
   }
 
-  .preview-image-stage,
-  .preview-image,
-  .preview-media,
-  .preview-frame {
+  .preview-image-stage {
     height: 56vh;
   }
 }

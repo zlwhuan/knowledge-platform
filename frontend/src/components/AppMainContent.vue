@@ -20,6 +20,7 @@ const AssessmentManagement = defineAsyncComponent(() => import('./AssessmentMana
 const VectorSearchView = defineAsyncComponent(() => import('./VectorSearchView.vue'))
 const VectorMaintenanceView = defineAsyncComponent(() => import('./VectorMaintenanceView.vue'))
 const VectorHealthView = defineAsyncComponent(() => import('./VectorHealthView.vue'))
+const SkillAssistantView = defineAsyncComponent(() => import('./SkillAssistantView.vue'))
 
 const props = defineProps({
   currentView: { type: String, required: true },
@@ -263,12 +264,19 @@ const emit = defineEmits([
     <VectorSearchView
       v-else-if="currentView === 'vector-search'"
       @open-item="(itemId) => emit('open-detail', { id: itemId })"
+      @open-preview="(attachment) => emit('open-preview', attachment)"
     />
     <VectorMaintenanceView
       v-else-if="currentView === 'vector-maintenance'"
       @open-item="(itemId) => emit('open-detail', { id: itemId })"
+      @open-preview="(attachment) => emit('open-preview', attachment)"
     />
     <VectorHealthView v-else-if="currentView === 'vector-health'" />
+    <SkillAssistantView
+      v-else-if="currentView === 'skill-assistant'"
+      @open-preview="(attachment) => emit('open-preview', attachment)"
+      @open-item="(itemId) => emit('open-detail', { id: itemId })"
+    />
     <TrainingManagement
       v-else-if="currentView === 'training'"
       :auth="{}"

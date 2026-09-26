@@ -1,6 +1,12 @@
-// 浏览器前进/后退桥：Vue Router 使用内存历史（不碰 History API），
-// 由本模块在「窗口可见」时用 pushState/hash 维护浏览器历史。
-// 窗口隐藏（最小化）时完全不写 History，避免 Edge 在 localhost 下把窗口顶回来。
+// 浏览器前进/后退桥（视图 + 弹窗状态）
+// - Vue Router 仍用内存历史，不碰 History API（避免 Edge 被顶窗）
+// - 本模块用 location.hash 表达完整 UI 状态：视图 + 详情/预览/编辑
+// - 示例：
+//     #/library
+//     #/library?detail=9
+//     #/library?detail=9&preview=14
+//     #/compose?item=9
+//     #/skill-assistant?detail=9
 
 const viewToPath = {
   home: '/',
@@ -20,6 +26,7 @@ const viewToPath = {
   'vector-search': '/vector-search',
   'vector-maintenance': '/vector-maintenance',
   'vector-health': '/vector-health',
+  'skill-assistant': '/skill-assistant',
   settings: '/settings',
   'dictionary-settings': '/dictionary-settings',
   users: '/users',
@@ -33,63 +40,113 @@ const pathToView = Object.fromEntries(
 )
 pathToView['/training-management'] = 'training'
 
+const OVERLAY_KEYS = ['detail', 'preview', 'item', 'skillDetail']
+
 let applyingFromBrowser = false
 let bound = false
-let applyView = null
-let lastPath = null
+let applyState = null
+let lastHash = null
 
 function isHidden() {
   return typeof document !== 'undefined' && document.visibilityState === 'hidden'
 }
 
-function normalizeHashPath() {
-  const raw = (typeof window !== 'undefined' && window.location.hash) || ''
-  const path = raw.replace(/^#/, '').split('?')[0] || '/'
-  return path.startsWith('/') ? path : `/${path}`
+function emptyState() {
+  return {
+    view: 'home',
+    detailId: null,
+    previewId: null,
+    composeId: null,
+    skillDetailId: null,
+  }
 }
 
-export function viewFromLocation() {
-  const path = normalizeHashPath()
-  return pathToView[path] || (path === '/' ? 'home' : null)
+function parseHash(hash) {
+  const raw = (hash || '').replace(/^#/, '')
+  const [pathPart, queryPart] = raw.split('?')
+  const path = (pathPart || '/').startsWith('/') ? pathPart || '/' : `/${pathPart}`
+  const view = pathToView[path] || (path === '/' ? 'home' : null)
+  const query = new URLSearchParams(queryPart || '')
+  const num = (key) => {
+    const v = query.get(key)
+    return v != null && v !== '' && !Number.isNaN(Number(v)) ? Number(v) : null
+  }
+  return {
+    view: view || 'home',
+    detailId: num('detail'),
+    previewId: num('preview'),
+    composeId: num('item'),
+    skillDetailId: num('skillDetail'),
+  }
 }
 
-export function pathForView(view) {
-  return viewToPath[view] || '/'
+function hashForState(state) {
+  const path = viewToPath[state.view] || '/'
+  const query = new URLSearchParams()
+  if (state.detailId != null) query.set('detail', String(state.detailId))
+  if (state.previewId != null) query.set('preview', String(state.previewId))
+  if (state.composeId != null) query.set('item', String(state.composeId))
+  if (state.skillDetailId != null) query.set('skillDetail', String(state.skillDetailId))
+  const qs = query.toString()
+  return `#${path}${qs ? `?${qs}` : ''}`
 }
 
-/** 应用内切换视图 → 写入浏览器历史（仅可见时） */
-export function syncViewToBrowser(view) {
-  if (typeof window === 'undefined' || !view) return
+function normalizeState(partial) {
+  const base = emptyState()
+  const next = { ...base, ...(partial || {}) }
+  if (typeof next.view !== 'string' || !viewToPath[next.view]) next.view = 'home'
+  const toId = (v) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v))
+  next.detailId = toId(next.detailId)
+  next.previewId = toId(next.previewId)
+  next.composeId = toId(next.composeId)
+  next.skillDetailId = toId(next.skillDetailId)
+  // compose 视图用 item 参数
+  if (next.view === 'compose' && next.composeId == null) {
+    // 允许空白 compose（新建）
+    next.composeId = next.composeId ?? null
+  }
+  return next
+}
+
+export function parseLocationState() {
+  if (typeof window === 'undefined') return emptyState()
+  return normalizeState(parseHash(window.location.hash))
+}
+
+/** 应用内状态变化 → 写入浏览器历史 */
+export function syncStateToBrowser(state, { replace = false } = {}) {
+  if (typeof window === 'undefined') return
   if (isHidden() || applyingFromBrowser) return
-  const path = pathForView(view)
-  const hash = `#${path}`
+  const next = normalizeState(state)
+  const hash = hashForState(next)
   if (window.location.hash === hash) {
-    lastPath = path
+    lastHash = hash
     return
   }
   try {
-    if (lastPath == null) {
-      window.history.replaceState({ view, path }, '', hash)
+    const payload = { ...next, hash }
+    if (replace || lastHash == null) {
+      window.history.replaceState(payload, '', hash)
     } else {
-      window.history.pushState({ view, path }, '', hash)
+      window.history.pushState(payload, '', hash)
     }
-    lastPath = path
+    lastHash = hash
   } catch (_) {
-    // 某些 Web 环境禁止 History API 时静默降级
+    /* History API 不可用时静默降级 */
   }
 }
 
 function handlePopState(event) {
-  if (isHidden() || !applyView) return
-  const path = normalizeHashPath()
-  const view = event?.state?.view || pathToView[path] || (path === '/' ? 'home' : null)
-  if (!view) return
+  if (isHidden() || !applyState) return
+  const fromEvent = event?.state && typeof event.state === 'object' && event.state.view
+    ? normalizeState(event.state)
+    : parseLocationState()
+  const hash = hashForState(fromEvent)
+  lastHash = hash
   applyingFromBrowser = true
-  lastPath = path
   try {
-    applyView(view)
+    applyState(fromEvent)
   } finally {
-    // 等一拍再放开，避免 applyView 内部再次 sync 造成回声
     setTimeout(() => {
       applyingFromBrowser = false
     }, 0)
@@ -97,25 +154,24 @@ function handlePopState(event) {
 }
 
 /**
- * 初始化：绑定 popstate，并解析当前 hash 作为初始视图。
- * @param {(view: string) => void} onViewApplied 浏览器后退/前进时应用视图
+ * @param {(state: object) => void} onStateApplied 浏览器后退/前进时应用完整状态
+ * @returns {object} 初始状态
  */
-export function initBrowserHistory(onViewApplied) {
-  applyView = onViewApplied
-  if (typeof window === 'undefined') return viewFromLocation()
+export function initBrowserHistory(onStateApplied) {
+  applyState = onStateApplied
+  if (typeof window === 'undefined') return emptyState()
 
   if (!bound) {
     window.addEventListener('popstate', handlePopState)
     bound = true
   }
 
-  // 刷新/直链：用当前 hash 初始化，但不 push
-  const initial = viewFromLocation()
-  const path = normalizeHashPath()
-  lastPath = path
+  const initial = parseLocationState()
+  const hash = hashForState(initial)
+  lastHash = hash
   try {
-    if (!window.history.state?.view && initial) {
-      window.history.replaceState({ view: initial, path }, '', `#${path}`)
+    if (!window.history.state?.view) {
+      window.history.replaceState({ ...initial, hash }, '', hash)
     }
   } catch (_) {
     /* ignore */
@@ -127,10 +183,29 @@ export function disposeBrowserHistory() {
   if (typeof window === 'undefined' || !bound) return
   window.removeEventListener('popstate', handlePopState)
   bound = false
-  applyView = null
+  applyState = null
 }
 
-/** 调试：当前是否允许写浏览器历史 */
 export function canWriteBrowserHistory() {
   return !isHidden() && !applyingFromBrowser
 }
+
+/** 是否正在应用浏览器前进/后退（用于避免回声） */
+export function isApplyingFromBrowser() {
+  return applyingFromBrowser
+}
+
+/** 兼容旧接口：按 view 同步（无弹窗状态） */
+export function syncViewToBrowser(view) {
+  syncStateToBrowser(normalizeState({ view }))
+}
+
+export function pathForView(view) {
+  return viewToPath[view] || '/'
+}
+
+export function viewFromLocation() {
+  return parseLocationState().view
+}
+
+export { viewToPath, OVERLAY_KEYS }

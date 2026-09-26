@@ -3,7 +3,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from '../services/api'
 
-const emit = defineEmits(['open-item'])
+const emit = defineEmits(['open-item', 'open-preview'])
 
 const loading = ref(false)
 const mode = ref('chunks') // chunks | sources
@@ -118,26 +118,59 @@ async function loadFullChunk(row) {
   }
 }
 
+function parseSourceRef(row) {
+  const path = String(row.path || '')
+  let m = path.match(/^knowledge_items\/attachment_(\d+)/)
+  if (m) return { kind: 'attachment', attachmentId: Number(m[1]), itemId: null }
+  m = path.match(/^attachments\/(\d+)\/(\d+)\//)
+  if (m) return { kind: 'attachment', itemId: Number(m[1]), attachmentId: Number(m[2]) }
+  m = path.match(/^knowledge_items\/(\d+)/)
+  if (m) {
+    return {
+      kind: 'item',
+      itemId: Number(m[1]),
+      attachmentId: Number(row.attachment_id || '') || null,
+    }
+  }
+  if (row.attachment_id && Number.isFinite(Number(row.attachment_id))) {
+    return {
+      kind: 'attachment',
+      attachmentId: Number(row.attachment_id),
+      itemId: row.item_id && /^\d+$/.test(String(row.item_id)) ? Number(row.item_id) : null,
+    }
+  }
+  if (row.item_id && /^\d+$/.test(String(row.item_id))) {
+    return { kind: 'item', itemId: Number(row.item_id), attachmentId: null }
+  }
+  return { kind: 'unknown' }
+}
+
 function itemIdFromPath(path) {
-  const match = String(path || '').match(/knowledge_items\/(?:attachment_)?(\d+)/)
-  if (match) return Number(match[1])
-  const att = String(path || '').match(/attachments\/(\d+)\//)
-  return att ? Number(att[1]) : null
+  const match = String(path || '').match(/^knowledge_items\/(\d+)/)
+  return match ? Number(match[1]) : null
 }
 
 function openAttachment(row) {
-  const attId = Number(row.attachment_id)
+  const ref = parseSourceRef(row)
+  const attId = ref.attachmentId
+    || Number(row.attachment_id)
     || Number(String(row.path || '').match(/attachments\/\d+\/(\d+)\//)?.[1])
+    || Number(String(row.path || '').match(/knowledge_items\/attachment_(\d+)/)?.[1])
   if (!attId) {
     ElMessage.info('无附件 ID')
     return
   }
-  const base = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$/, '')
-  window.open(`${base}/api/attachments/${attId}/download`, '_blank')
+  emit('open-preview', { id: attId })
 }
 
 function openItem(row) {
-  const id = itemIdFromPath(row.path)
+  const ref = parseSourceRef(row)
+  if (ref.kind === 'attachment' && ref.attachmentId) {
+    emit('open-preview', { id: ref.attachmentId })
+    detailDialog.open = false
+    return
+  }
+  const id = ref.itemId || itemIdFromPath(row.path)
   if (id) {
     emit('open-item', id)
     detailDialog.open = false

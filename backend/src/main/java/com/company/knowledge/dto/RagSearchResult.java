@@ -37,7 +37,73 @@ public class RagSearchResult {
     @JsonProperty("text")
     private String text;
 
+    @JsonProperty("source_kind")
+    private String sourceKind;
+
+    @JsonProperty("item_id")
+    private String itemId;
+
+    @JsonProperty("attachment_id")
+    private String attachmentId;
+
+    @JsonProperty("filename")
+    private String filename;
+
+    @JsonProperty("file_path")
+    private String filePath;
+
+    @JsonProperty("locator")
+    private String locator;
+
     public RagSearchResult() {}
+
+    public String getSourceKind() {
+        return sourceKind;
+    }
+
+    public void setSourceKind(String sourceKind) {
+        this.sourceKind = sourceKind;
+    }
+
+    public String getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
+
+    public String getAttachmentId() {
+        return attachmentId;
+    }
+
+    public void setAttachmentId(String attachmentId) {
+        this.attachmentId = attachmentId;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getLocator() {
+        return locator;
+    }
+
+    public void setLocator(String locator) {
+        this.locator = locator;
+    }
 
     public Integer getRank() {
         return rank;

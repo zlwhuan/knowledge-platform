@@ -121,6 +121,11 @@ const globalSearchQuery = ref('')
         </div>
       </div>
 
+      <button type="button" class="nav-button" :class="{ active: currentView === 'skill-assistant' }" @click="emit('open-vector-view', 'skill-assistant')">
+        <span class="nav-main-label">技能助手</span>
+        <small>产品问答与业务技能</small>
+      </button>
+
       <div class="nav-group project-nav-group" :class="{ open: projectMenuOpen }">
         <button
           type="button"
