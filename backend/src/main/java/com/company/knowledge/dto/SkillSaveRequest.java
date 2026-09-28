@@ -12,7 +12,11 @@ public record SkillSaveRequest(
         String icon,
         String systemPrompt,
         List<String> tools,
+        List<String> scopeCategoryIds,
+        List<String> scopeItemIds,
         Integer sortOrder,
-        Boolean enabled
+        Boolean enabled,
+        /** 个人技能归属用户名；空 = 公共技能 */
+        String ownerUsername
 ) {
 }

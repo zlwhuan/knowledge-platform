@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface AttachmentService {
     List<AttachmentResponse> listByItemId(Long itemId);
     Page<AttachmentDetailResponse> listAll(String keyword, String contentType, Pageable pageable);
+    AttachmentDetailResponse getDetail(Long attachmentId);
     AttachmentResponse upload(Long itemId, MultipartFile file, String uploadedBy);
     Resource download(Long attachmentId);
     String downloadFileName(Long attachmentId);

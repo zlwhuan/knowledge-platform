@@ -234,6 +234,22 @@ public class RagServiceImpl implements RagService {
 
     @Override
     public List<RagSearchResult> search(String query, int topK, String category, String docType) {
+        return search(query, topK, category, docType, null);
+    }
+
+    @Override
+    public List<RagSearchResult> search(String query, int topK, String category, String docType, String sessionId) {
+        return search(query, topK, category, docType, sessionId, null);
+    }
+
+    @Override
+    public List<RagSearchResult> search(String query, int topK, String category, String docType, String sessionId, List<String> itemIds) {
+        return search(query, topK, category, docType, sessionId, itemIds, null);
+    }
+
+    @Override
+    public List<RagSearchResult> search(String query, int topK, String category, String docType, String sessionId,
+                                        List<String> itemIds, List<String> categories) {
         if (!enabled) {
             logger.debug("RAG service is disabled, returning empty results");
             return Collections.emptyList();
@@ -249,6 +265,15 @@ public class RagServiceImpl implements RagService {
             }
             if (docType != null && !docType.isEmpty()) {
                 request.put("doc_type", docType);
+            }
+            if (sessionId != null && !sessionId.isEmpty()) {
+                request.put("session_id", sessionId);
+            }
+            if (itemIds != null && !itemIds.isEmpty()) {
+                request.put("item_ids", itemIds);
+            }
+            if (categories != null && !categories.isEmpty()) {
+                request.put("categories", categories);
             }
 
             // Call RAG service

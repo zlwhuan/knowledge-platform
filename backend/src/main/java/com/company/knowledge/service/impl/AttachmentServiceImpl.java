@@ -60,6 +60,11 @@ public class AttachmentServiceImpl implements AttachmentService {
         return attachmentRepository.findAll(keyword, contentType, pageable).map(this::toDetailResponse);
     }
 
+    @Override
+    public AttachmentDetailResponse getDetail(Long attachmentId) {
+        return toDetailResponse(findAttachment(attachmentId));
+    }
+
     private static final java.util.Set<String> BLOCKED_EXTENSIONS = java.util.Set.of();
 
     private static boolean isBlockedExtension(String fileName) {

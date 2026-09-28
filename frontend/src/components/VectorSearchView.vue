@@ -101,35 +101,45 @@ function parseSourceRef(row) {
       attachmentId: Number(row.attachment_id || '') || null,
     }
   }
+  if (row.item_id && /^\d+$/.test(String(row.item_id))) {
+    return { kind: 'item', itemId: Number(row.item_id), attachmentId: Number(row.attachment_id || '') || null }
+  }
   if (row.attachment_id && Number.isFinite(Number(row.attachment_id))) {
     return {
       kind: 'attachment',
       attachmentId: Number(row.attachment_id),
-      itemId: row.item_id ? Number(row.item_id) : null,
+      itemId: null,
     }
-  }
-  if (row.item_id && /^\d+$/.test(String(row.item_id))) {
-    return { kind: 'item', itemId: Number(row.item_id), attachmentId: null }
   }
   return { kind: 'unknown' }
 }
 
-function openSource(row) {
+/** 打开条目：附件来源也先反查所属知识条目 */
+async function openSource(row) {
   const ref = parseSourceRef(row)
-  if (ref.kind === 'attachment' && ref.attachmentId) {
-    emit('open-preview', { id: ref.attachmentId })
+  if (ref.itemId) {
+    emit('open-item', ref.itemId)
     return
   }
-  if (ref.kind === 'item' && ref.itemId) {
-    emit('open-item', ref.itemId)
+  if (ref.attachmentId) {
+    try {
+      const { data } = await api.get(`/attachments/${ref.attachmentId}`)
+      const itemId = data?.data?.itemId
+      if (itemId) {
+        emit('open-item', itemId)
+        return
+      }
+    } catch { /* fall through */ }
+    ElMessage.info('无法定位所属知识条目，可点「打开附件」查看内容')
     return
   }
   ElMessage.info(`来源路径：${row.path || '未知'}`)
 }
 
+/** 打开附件：预览 */
 function openAttachment(row) {
   const ref = parseSourceRef(row)
-  const attId = ref.attachmentId || attachmentIdOf(row)
+  const attId = ref.attachmentId
   if (!attId) {
     ElMessage.info('该命中不在附件中')
     return
@@ -158,7 +168,7 @@ onMounted(() => {
   <section class="page-section vector-page">
     <el-card shadow="never" class="panel-card">
       <template #header>
-        <div class="vector-page-head">
+        <div class="page-head">
           <div>
             <h2>向量库 · 快捷搜索</h2>
             <p>混合检索（向量 + BM25），支持分类与文档类型过滤</p>
@@ -192,7 +202,9 @@ onMounted(() => {
         <article v-for="row in results" :key="row.chunk_id" class="vs-card">
           <header class="vs-card-head">
             <div class="vs-title" v-html="highlight(row.title)"></div>
-            <el-tag size="small" effect="plain">{{ scoreText(row.score) }}</el-tag>
+            <el-tag size="small" effect="plain" :title="'相关度（越高越相关）'">
+              相关度 {{ scoreText(row.score) }}
+            </el-tag>
           </header>
           <div class="vs-meta">
             <el-tag size="small" :type="row.source_kind === 'attachment' ? 'warning' : 'info'" effect="plain">
@@ -222,15 +234,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.vector-page-head h2 {
-  margin: 0;
-  font-size: 18px;
-}
-.vector-page-head p {
-  margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
+
 .vs-search-bar {
   display: flex;
   flex-wrap: wrap;
@@ -312,8 +316,8 @@ onMounted(() => {
   word-break: break-all;
 }
 :deep(.vs-hit) {
-  background: #ffe58f;
-  color: #613400;
+  background: var(--bg-hover);
+  color: var(--sem-warning);
   border-radius: 2px;
   padding: 0 1px;
 }

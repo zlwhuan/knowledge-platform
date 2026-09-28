@@ -64,7 +64,7 @@ const emit = defineEmits(['submit'])
 }
 
 .login-copy h1 {
-  color: #f8fbff;
+  color: var(--bg-soft);
 }
 
 .hero-kicker {

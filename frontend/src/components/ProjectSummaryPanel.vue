@@ -190,9 +190,9 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   margin: 0 0 8px;
   padding: 8px 12px 8px 10px;
-  border: 1px solid #e3ebf5;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fbfcfe;
+  background: var(--bg-soft);
   overflow: visible;
 }
 
@@ -218,7 +218,7 @@ onBeforeUnmount(() => {
 
 .side-card-title {
   min-width: 0;
-  color: #0f2f5c;
+  color: var(--t-strong);
   font-size: 13px;
   font-weight: 650;
   line-height: 1.35;
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
 
 .side-card-sub {
   min-width: 0;
-  color: #5f6f84;
+  color: var(--t-muted);
   font-size: 12px;
 }
 
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
 .side-card-meta {
   margin-top: 4px;
   font-size: 12px;
-  color: #8a98ab;
+  color: var(--t-faint);
   line-height: 1.35;
   word-break: break-all;
 }
@@ -259,7 +259,7 @@ onBeforeUnmount(() => {
 .side-card-body {
   margin-top: 4px;
   font-size: 12px;
-  color: #334861;
+  color: var(--t-strong);
   line-height: 1.45;
   word-break: break-word;
   max-width: 100%;

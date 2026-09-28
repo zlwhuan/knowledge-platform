@@ -26,11 +26,16 @@ _token_re = re.compile(r"[一-鿿A-Za-z0-9]+")
 DEFAULT_EMBED_MODEL = os.environ.get(
     "RAG_EMBED_MODEL", "BAAI/bge-small-zh-v1.5"
 )
+DEFAULT_RERANK_MODEL = os.environ.get(
+    "RAG_RERANK_MODEL", "BAAI/bge-reranker-base"
+)
 TABLE_NAME = "chunks"
 
 _model_lock = threading.Lock()
 _model_cache: dict[str, object] = {}
 _embedder_cache: dict[str, "Embedder"] = {}
+_reranker = None
+_reranker_lock = threading.Lock()
 
 
 
@@ -111,14 +116,41 @@ class Embedder:
         model = self._ensure()
         if not texts:
             return np.zeros((0, self.dim or 384), dtype=np.float32)
+        # 批量调大，减少 Python 往返；CPU 上 BGE-small 足够吃满
         vecs = model.encode(
             texts,
-            batch_size=32,
+            batch_size=64,
             convert_to_numpy=True,
             normalize_embeddings=True,
             show_progress_bar=False,
         )
         return np.asarray(vecs, dtype=np.float32)
+
+    def encode_texts_progress(self, texts: list[str], log_every: int = 200) -> np.ndarray:
+        """大批量编码并打进度，避免看起来像卡死。"""
+        model = self._ensure()
+        if not texts:
+            return np.zeros((0, self.dim or 384), dtype=np.float32)
+        n = len(texts)
+        if n <= log_every:
+            return self.encode_texts(texts)
+        parts = []
+        done = 0
+        while done < n:
+            step = min(log_every, n - done)
+            batch = texts[done:done + step]
+            parts.append(model.encode(
+                batch,
+                batch_size=64,
+                convert_to_numpy=True,
+                normalize_embeddings=True,
+                show_progress_bar=False,
+            ))
+            done += step
+            logging.getLogger("rag-embed").info(
+                "Embedding progress: %s/%s", done, n
+            )
+        return np.concatenate(parts, axis=0).astype(np.float32)
 
     def encode_query(self, query: str) -> np.ndarray:
         model = self._ensure()
@@ -135,6 +167,23 @@ def get_embedder(model_name: str = DEFAULT_EMBED_MODEL) -> Embedder:
     if model_name not in _embedder_cache:
         _embedder_cache[model_name] = Embedder(model_name)
     return _embedder_cache[model_name]
+
+
+def get_reranker():
+    """交叉编码器重排（bge-reranker）。懒加载，失败返回 None。"""
+    global _reranker
+    with _reranker_lock:
+        if _reranker is not None:
+            return _reranker
+        try:
+            from sentence_transformers import CrossEncoder
+            _reranker = CrossEncoder(DEFAULT_RERANK_MODEL)
+            logging.getLogger("rag-embed").info("Reranker loaded: %s", DEFAULT_RERANK_MODEL)
+            return _reranker
+        except Exception as exc:  # noqa: BLE001
+            logging.getLogger("rag-embed").warning("Reranker unavailable: %s", exc)
+            _reranker = False
+            return None
 
 
 def warmup_embedder(model_name: str = DEFAULT_EMBED_MODEL) -> bool:
@@ -212,6 +261,109 @@ class LanceVectorStore:
         except Exception:
             return len(self._by_id)
 
+    def get_vector(self, chunk_id: str) -> list[float] | None:
+        """复用已算过的向量，避免全量重嵌入"""
+        row = self._by_id.get(str(chunk_id))
+        if not row:
+            return None
+        vec = row.get("vector")
+        if vec is None:
+            return None
+        try:
+            if hasattr(vec, "tolist"):
+                return vec.tolist()
+            return list(vec)
+        except Exception:
+            return None
+
+    def upsert(self, chunks: list[Chunk]) -> dict:
+        """增量向量：只嵌入新 chunk_id，已有的复用向量后整表重建（保留进度）"""
+        import lancedb
+
+        self.db_path.mkdir(parents=True, exist_ok=True)
+        self._db = lancedb.connect(str(self.db_path))
+        # 先取回旧向量（若表存在）
+        if TABLE_NAME in self._db.table_names():
+            if self._table is None:
+                self._table = self._db.open_table(TABLE_NAME)
+                self._reload_lookup()
+        else:
+            self._table = None
+            self._by_id = {}
+
+        if not chunks:
+            if TABLE_NAME in self._db.table_names():
+                self._db.drop_table(TABLE_NAME)
+            self._table = None
+            self._by_id = {}
+            return {"vectors": 0, "model": self.model_name, "dim": None, "embedded": 0, "reused": 0}
+
+        to_embed: list[Chunk] = []
+        reused = 0
+        embedded = 0
+        payload_rows = []
+        embed_index: list[int] = []
+        texts: list[str] = []
+
+        for i, c in enumerate(chunks):
+            old = self.get_vector(c.chunk_id)
+            if old is not None:
+                reused += 1
+                payload_rows.append(old)
+            else:
+                embed_index.append(i)
+                texts.append(c.text)
+                payload_rows.append(None)
+
+        if texts:
+            logging.getLogger("rag-embed").info(
+                "Embedding %s new chunks (reused %s vectors)", len(texts), reused
+            )
+            vecs = self.embedder.encode_texts_progress(texts, log_every=200)
+            for k, i in enumerate(embed_index):
+                payload_rows[i] = vecs[k].tolist()
+                embedded += 1
+
+        dim = 384
+        if texts:
+            dim = int(self.embedder.dim or 384)
+        elif payload_rows and payload_rows[0] is not None:
+            dim = len(payload_rows[0])
+
+        data = []
+        for i, c in enumerate(chunks):
+            data.append(
+                {
+                    "chunk_id": c.chunk_id,
+                    "rel_path": c.rel_path,
+                    "title": c.title,
+                    "product": c.product,
+                    "doc_type": c.doc_type,
+                    "section": c.section,
+                    "page": c.page,
+                    "text": c.text,
+                    "source_kind": getattr(c, "source_kind", "item") or "item",
+                    "item_id": getattr(c, "item_id", "") or "",
+                    "attachment_id": getattr(c, "attachment_id", "") or "",
+                    "filename": getattr(c, "filename", "") or "",
+                    "file_path": getattr(c, "file_path", "") or "",
+                    "locator": getattr(c, "locator", "") or "",
+                    "vector": payload_rows[i] if payload_rows[i] is not None else [0.0] * dim,
+                }
+            )
+
+        if TABLE_NAME in self._db.table_names():
+            self._db.drop_table(TABLE_NAME)
+        self._table = self._db.create_table(TABLE_NAME, data=data)
+        self._reload_lookup()
+        return {
+            "vectors": len(data),
+            "model": self.model_name,
+            "dim": dim,
+            "embedded": embedded,
+            "reused": reused,
+        }
+
     def overwrite(self, chunks: list[Chunk]) -> dict:
         import lancedb
 
@@ -287,8 +439,11 @@ class LanceVectorStore:
             return []
         out: list[dict] = []
         for row in res:
-            if product and str(row.get("product", "")).lower() != product.lower():
-                continue
+            if product:
+                cp = str(row.get("product", "")).lower()
+                pf = product.lower()
+                if cp != pf and not cp.startswith(pf + "/"):
+                    continue
             if doc_type and str(row.get("doc_type", "")).lower() != doc_type.lower():
                 continue
             out.append(
@@ -340,13 +495,18 @@ class RagIndex:
     def build(self, chunks: list[Chunk], build_vectors: bool = True) -> None:
         self.chunks = list(chunks)
         corpus = [c.text for c in self.chunks]
+        logging.getLogger("rag-embed").info(
+            "Building lexical index for %s chunks...", len(corpus)
+        )
+        # 只分词一次，BM25 与 TF-IDF 共用（万行表会差很多）
         tokenized = [tokenize(t) for t in corpus]
         self._bm25 = BM25Okapi(tokenized) if tokenized else None
         self._vectorizer = TfidfVectorizer(
             tokenizer=tokenize,
             token_pattern=None,
-            ngram_range=(1, 2),
+            ngram_range=(1, 1),  # 去掉 bigram：大语料下显著更快
             min_df=1,
+            max_features=50000,
             sublinear_tf=True,
         )
         if corpus:
@@ -364,12 +524,17 @@ class RagIndex:
         }
         if build_vectors:
             try:
-                stats = self.vector_store.overwrite(self.chunks)
+                stats = self.vector_store.upsert(self.chunks)
                 self.embed_meta.update(stats)
                 self.embed_meta["vector_ok"] = stats.get("vectors", 0) > 0
+                logging.getLogger("rag-embed").info(
+                    "Vector index ready: embedded=%s reused=%s total=%s",
+                    stats.get("embedded"), stats.get("reused"), stats.get("vectors"),
+                )
             except Exception as exc:  # noqa: BLE001
                 self.embed_meta["vector_ok"] = False
                 self.embed_meta["vector_error"] = str(exc)
+                logging.getLogger("rag-embed").error("Vector build failed: %s", exc)
 
     def save(self) -> None:
         paths = self.paths
@@ -512,6 +677,39 @@ class RagIndex:
         top_k: int = 8,
         product: str | None = None,
         doc_type: str | None = None,
+        min_score: float = 0.2,
+        session_id: str | None = None,
+        item_ids: list[str] | None = None,
+        categories: list[str] | None = None,
+    ) -> list[dict]:
+        if not self.chunks or not query.strip():
+            return []
+
+        def visible(c) -> bool:
+            path = c.rel_path or ""
+            if path.startswith("sessions/"):
+                return bool(session_id) and path.startswith(f"sessions/{session_id}/")
+            return True
+
+        scoped = [c for c in self.chunks if visible(c)]
+        if not scoped:
+            return []
+        original = self.chunks
+        self.chunks = scoped
+        try:
+            return self._search_core(query, top_k, product, doc_type, min_score, item_ids, categories)
+        finally:
+            self.chunks = original
+
+    def _search_core(
+        self,
+        query: str,
+        top_k: int,
+        product: str | None,
+        doc_type: str | None,
+        min_score: float,
+        item_ids: list[str] | None = None,
+        categories: list[str] | None = None,
     ) -> list[dict]:
         if not self.chunks or not query.strip():
             return []
@@ -571,29 +769,50 @@ class RagIndex:
             fused[i] = score
 
         q_lower = query.lower()
+        item_id_set = {str(x).strip() for x in (item_ids or []) if str(x).strip()}
+        cat_list = [str(x).strip().lower() for x in (categories or []) if str(x).strip()]
         for i, c in enumerate(self.chunks):
             hay = f"{c.title} {c.section} {c.rel_path} {c.product}".lower()
             if q_lower and q_lower in hay:
                 fused[i] += 0.08
-            if product and c.product.lower() == product.lower():
-                fused[i] += 0.06
-            if doc_type and c.doc_type.lower() == doc_type.lower():
-                fused[i] += 0.03
-            if product and c.product.lower() != product.lower():
-                fused[i] = -1.0
+            cp = (c.product or "").lower()
+            # 会话附件始终可见（属于当前对话，不受技能知识范围限制）
+            is_session = (c.rel_path or "").startswith("sessions/")
+            if not is_session:
+                # 分类树匹配：等于自身或前缀（父分类含子分类）
+                cat_ok = True
+                if product:
+                    pf = product.lower()
+                    cat_ok = cp == pf or cp.startswith(pf + "/")
+                elif cat_list:
+                    cat_ok = any(cp == pf or cp.startswith(pf + "/") for pf in cat_list)
+                # 指定知识条目
+                item_ok = True
+                if item_id_set:
+                    item_ok = str(getattr(c, "item_id", "") or "") in item_id_set
+                # 分类与条目都绑定时：任一命中即可（分类树 ∪ 指定条目）
+                if cat_list and item_id_set:
+                    scope_ok = cat_ok or item_ok
+                else:
+                    scope_ok = cat_ok and item_ok
+                if scope_ok and (product or cat_list):
+                    fused[i] += 0.06
+                elif not scope_ok:
+                    fused[i] = -1.0
             if doc_type and c.doc_type.lower() != doc_type.lower():
                 fused[i] = -1.0
 
-        order = np.argsort(-fused)[: max(top_k, 1)]
+        order = np.argsort(-fused)[: max(top_k * 4, 20)]
         results = []
-        for rank, idx in enumerate(order, 1):
+        for idx in order:
             c = self.chunks[int(idx)]
             score = float(fused[int(idx)])
-            if score < 0:
+            # 过滤几乎无关的结果（可调 min_score）
+            if score < min_score:
                 continue
             results.append(
                 {
-                    "rank": rank,
+                    "rank": len(results) + 1,
                     "score": round(score, 4),
                     "chunk_id": c.chunk_id,
                     "title": c.title,
@@ -611,7 +830,36 @@ class RagIndex:
                     "locator": getattr(c, "locator", "") or "",
                 }
             )
+            if len(results) >= 8:
+                break
+
+        # Rerank 精排：交叉编码器过滤“驴唇不对马嘴”
+        results = self._rerank(query, results, top_k)
         return results
+
+    def _rerank(self, query: str, candidates: list[dict], top_k: int) -> list[dict]:
+        if not query or not candidates:
+            return candidates[:top_k]
+        reranker = get_reranker()
+        if not reranker:
+            return candidates[:top_k]
+        try:
+            # 精排只需判断「像不像」，截前 600 字足够，避免长文拖垮 CPU
+            pairs = [[query, (r.get("text") or r.get("title") or "")[:600]] for r in candidates]
+            scores = reranker.predict(pairs, batch_size=8)
+            for r, s in zip(candidates, scores):
+                r["rerank_score"] = round(float(s), 4)
+                # 展示用：以精排分为准
+                r["score"] = round(float(s), 4)
+            ranked = sorted(candidates, key=lambda x: x.get("rerank_score", 0), reverse=True)
+            # rerank 分数极低 = 几乎无关，丢弃
+            kept = [r for r in ranked if r.get("rerank_score", 0.0) > 0.3]
+            if not kept:
+                kept = ranked[:max(top_k, 1)]
+            return kept[:top_k]
+        except Exception as exc:  # noqa: BLE001
+            logging.getLogger("rag-embed").warning("Rerank failed, fallback: %s", exc)
+            return candidates[:top_k]
 
     def list_sources(self, product: str | None = None, doc_type: str | None = None) -> list[dict]:
         seen: dict[str, dict] = {}

@@ -289,7 +289,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .day-empty {
   text-align: center;
-  color: #b0bcc9;
+  color: var(--t-muted);
   font-size: 12px;
   padding: 20px 0;
 }

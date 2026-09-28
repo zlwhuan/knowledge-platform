@@ -320,7 +320,7 @@ const chartData = computed(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #5f6f84;
+  color: var(--t-muted);
 }
 
 .trend-legend-item i {

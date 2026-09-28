@@ -29,6 +29,7 @@ const auth = reactive({ token: '', user: null })
 const loginForm = reactive({ username: 'admin', password: 'Admin@123' })
 const loginError = ref('')
 const currentView = ref('home')
+const previewHistoryPushed = ref(false)
 const libraryMenuOpen = ref(false)
 const vectorMenuOpen = ref(false)
 const projectMenuOpen = ref(false)
@@ -390,6 +391,7 @@ const {
   openPreview: openPreviewBase,
   reloadPreview,
   destroyOnlyOfficeEditor,
+  onPreviewFrameLoad,
 } = useAttachmentPreview({
   api,
   apiBaseUrl,
@@ -571,17 +573,32 @@ function closeDetailDialog() {
 /** 打开附件预览（叠在详情之上） */
 async function openPreview(attachment) {
   await openPreviewBase(attachment)
-  if (preview.open && attachment?.id) {
+  // 会话附件 id 非数字，不入浏览器历史；仅知识库附件写入，便于后退
+  previewHistoryPushed.value = false
+  if (preview.open && attachment?.id && !attachment?.isSessionAttachment) {
     pushPreview(Number(attachment.id))
+    previewHistoryPushed.value = true
   }
 }
 
 function closePreview() {
   if (preview.open) {
     preview.open = false
-    popOverlay()
+    // 只有写入过历史才 back，否则 ESC 会把页面退到首页
+    if (previewHistoryPushed.value) {
+      previewHistoryPushed.value = false
+      popOverlay()
+    }
   }
 }
+
+// 预览被 Esc/内部关闭时，同步清理浏览器历史（composable 直接改 preview.open）
+watch(() => preview.open, (open) => {
+  if (!open && previewHistoryPushed.value) {
+    previewHistoryPushed.value = false
+    popOverlay()
+  }
+})
 
 function startCreateContent() {
   startLibraryCreateContent(selectedCategoryId.value)
@@ -1167,8 +1184,23 @@ onUnmounted(() => {
         </div>
         <video v-else-if="preview.kind === 'video'" controls class="preview-media" :src="preview.url"></video>
         <audio v-else-if="preview.kind === 'audio'" controls class="preview-audio" :src="preview.url"></audio>
-        <embed v-else-if="preview.kind === 'pdf'" class="preview-frame" :src="previewFrameUrl" type="application/pdf" />
-        <iframe v-else-if="isPreviewFrameKind(preview.kind)" class="preview-frame" :src="previewFrameUrl" :title="preview.fileName" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+        <iframe
+          v-else-if="preview.kind === 'pdf'"
+          class="preview-frame"
+          :src="previewFrameUrl"
+          :title="preview.fileName"
+          loading="lazy"
+          @load="onPreviewFrameLoad"
+        ></iframe>
+        <iframe
+          v-else-if="isPreviewFrameKind(preview.kind)"
+          class="preview-frame"
+          :src="previewFrameUrl"
+          :title="preview.fileName"
+          loading="lazy"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+          @load="onPreviewFrameLoad"
+        ></iframe>
         <el-empty v-else description="当前文件暂不支持直接预览，请下载查看。" />
       </div>
     </el-dialog>

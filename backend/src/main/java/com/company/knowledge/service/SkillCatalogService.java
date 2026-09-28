@@ -103,6 +103,17 @@ public class SkillCatalogService {
         return new ArrayList<>(cache.values());
     }
 
+    /** 对话用：公共 + 指定用户的个人技能（启用中） */
+    public List<SkillDefinition> listForUser(String username) {
+        List<SkillDefinition> out = new ArrayList<>();
+        for (SkillDefinition e : cache.values()) {
+            if (isPublic(e) || ownerMatches(e, username)) {
+                out.add(e);
+            }
+        }
+        return out;
+    }
+
     /** 含停用技能，供管理界面 */
     public List<SkillDefinition> listAll() {
         List<SkillDefinition> all = new ArrayList<>();
@@ -110,6 +121,32 @@ public class SkillCatalogService {
             all.add(toDto(e));
         }
         return all;
+    }
+
+    /** 管理界面：scope=public|personal|all；管理员 personal 看全部个人技能 */
+    public List<SkillDefinition> listScoped(String scope, String username, boolean admin) {
+        List<SkillDefinition> all = listAll();
+        List<SkillDefinition> out = new ArrayList<>();
+        for (SkillDefinition s : all) {
+            boolean pub = isPublic(s);
+            if ("public".equals(scope)) {
+                if (pub) out.add(s);
+            } else if ("personal".equals(scope)) {
+                if (!pub && (admin || ownerMatches(s, username))) out.add(s);
+            } else {
+                out.add(s);
+            }
+        }
+        return out;
+    }
+
+    private boolean isPublic(SkillDefinition s) {
+        return s.ownerUsername() == null || s.ownerUsername().isBlank();
+    }
+
+    private boolean ownerMatches(SkillDefinition s, String username) {
+        return username != null && !username.isBlank()
+                && username.equals(s.ownerUsername());
     }
 
     public Optional<SkillDefinition> find(String id) {
@@ -171,6 +208,16 @@ public class SkillCatalogService {
         if (req.icon() != null) entity.setIcon(req.icon());
         if (req.systemPrompt() != null) entity.setSystemPrompt(req.systemPrompt());
         if (req.tools() != null) entity.setTools(joinTools(req.tools()));
+        if (req.scopeCategoryIds() != null) {
+            entity.setScopeCategoryIds(joinIds(req.scopeCategoryIds()));
+        }
+        if (req.scopeItemIds() != null) {
+            entity.setScopeItemIds(joinIds(req.scopeItemIds()));
+        }
+        // 个人技能归属：仅创建时可指定；空 = 公共
+        if (entity.getId() == null && req.ownerUsername() != null) {
+            entity.setOwnerUsername(req.ownerUsername().trim());
+        }
         if (req.sortOrder() != null) entity.setSortOrder(req.sortOrder());
         if (req.enabled() != null) entity.setEnabled(req.enabled());
         entity.setUpdatedAt(LocalDateTime.now());
@@ -186,8 +233,11 @@ public class SkillCatalogService {
                 e.getIcon(),
                 e.getSystemPrompt(),
                 splitTools(e.getTools()),
+                splitIds(e.getScopeCategoryIds()),
+                splitIds(e.getScopeItemIds()),
                 e.getSortOrder(),
-                e.getEnabled()
+                e.getEnabled(),
+                e.getOwnerUsername() == null ? "" : e.getOwnerUsername()
         );
     }
 
@@ -199,6 +249,19 @@ public class SkillCatalogService {
     private List<String> splitTools(String tools) {
         if (tools == null || tools.isBlank()) return List.of("rag_search");
         return Arrays.stream(tools.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
+    private String joinIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return "";
+        return String.join(",", ids.stream().map(String::trim).filter(s -> !s.isEmpty()).toList());
+    }
+
+    private List<String> splitIds(String ids) {
+        if (ids == null || ids.isBlank()) return List.of();
+        return Arrays.stream(ids.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();

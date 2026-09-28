@@ -364,7 +364,7 @@ function followupStatus(dateText) {
 .crm-page-head-text p {
   margin: 2px 0 0;
   font-size: 12px;
-  color: #6b7c93;
+  color: var(--t-muted);
 }
 
 .crm-filter-grid {
@@ -378,7 +378,7 @@ function followupStatus(dateText) {
 
 .crm-filter-grid .el-form-item__label {
   font-size: 12px;
-  color: #5f6f84;
+  color: var(--t-muted);
 }
 
 .crm-row-actions {
@@ -408,14 +408,14 @@ function followupStatus(dateText) {
 
 .crm-page-total {
   font-size: 12px;
-  color: #6b7c93;
+  color: var(--t-muted);
   white-space: nowrap;
 }
 
 .crm-side-title {
   font-weight: 600;
   font-size: 13px;
-  color: #1a2b40;
+  color: var(--t-strong);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -425,17 +425,17 @@ function followupStatus(dateText) {
 .crm-side-count {
   margin-left: 4px;
   font-size: 12px;
-  color: #6b7c93;
+  color: var(--t-muted);
 }
 
 .crm-side-empty {
   min-height: 40px;
   display: grid;
   place-items: center;
-  color: #8a98ab;
+  color: var(--t-faint);
   font-size: 12px;
-  background: #f7fafd;
-  border: 1px dashed #d7e3f1;
+  background: var(--bg-soft);
+  border: 1px dashed var(--line);
   border-radius: 6px;
 }
 
@@ -458,9 +458,9 @@ function followupStatus(dateText) {
 
 .crm-timeline-item {
   padding: 6px 8px;
-  border: 1px solid #e7eef8;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: #fbfcfe;
+  background: var(--bg-soft);
 }
 
 .crm-timeline-head {
@@ -472,26 +472,26 @@ function followupStatus(dateText) {
 
 .crm-timeline-head strong {
   font-size: 13px;
-  color: #0f2f5c;
+  color: var(--t-strong);
 }
 
 .crm-timeline-meta {
   margin-top: 2px;
   font-size: 11px;
-  color: #6b7c93;
+  color: var(--t-muted);
 }
 
 .crm-timeline-content {
   margin: 4px 0 2px;
   font-size: 12px;
-  color: #334861;
+  color: var(--t-strong);
   line-height: 1.4;
 }
 
 .crm-progress-text {
   display: inline-block;
   margin-left: 4px;
-  color: #6b7c93;
+  color: var(--t-muted);
   font-size: 11px;
 }
 </style>

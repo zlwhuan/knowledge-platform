@@ -12,6 +12,8 @@ from .embed import RagIndex
 from .loaders import LoadedDoc, iter_docs, load_document
 from .utils import file_sha256, project_paths
 
+_LD = LoadedDoc
+
 # 平台同步进来的切块路径前缀（MySQL 知识条目 / 附件），不走 docs-vault
 PLATFORM_PREFIXES = ("knowledge_items/", "attachments/")
 
@@ -81,8 +83,6 @@ def chunk_platform_items(items: list[dict]) -> list[Chunk]:
       - 附件：attachments/{item_id}/{attachment_id}/{filename}，locator=附件名 · p.x · 章节
     每块都带元信息头 + 结构化出处字段。
     """
-    from .loaders import LoadedDoc as _LD
-
     chunks: list[Chunk] = []
     for item in items or []:
         item_id = str(item.get("item_id") or item.get("id") or "").strip()
@@ -164,6 +164,46 @@ def _meta_header(title: str, category: str, project: str) -> str:
         f"所属分类ID：{category}\n"
         f"关联项目ID：{project}\n"
     )
+
+
+def session_path(session_id: str, attachment_id: str, filename: str) -> str:
+    return f"sessions/{session_id}/{attachment_id}/{filename}"
+
+
+def chunk_session_attachment(
+    session_id: str,
+    attachment_id: str,
+    filename: str,
+    text: str,
+    title: str = "",
+) -> list[Chunk]:
+    """会话级临时附件切块：仅本会话可检索，不入公共库。"""
+    rel = session_path(session_id, attachment_id, filename)
+    doc = _LD(
+        path=None,
+        rel_path=rel,
+        title=f"会话附件 · {filename}",
+        product="会话附件",
+        doc_type="session",
+        text=text,
+    )
+    doc.source_kind = "attachment"
+    doc.item_id = ""
+    doc.attachment_id = str(attachment_id or "")
+    doc.filename = filename
+    doc.file_path = ""
+    out = []
+    header = f"标题：{title or filename}\n所属分类ID：会话临时附件\n原始文件名：{filename}\n"
+    for c in chunk_document(doc):
+        c.text = header + c.text
+        c.source_kind = "attachment"
+        c.attachment_id = str(attachment_id or "")
+        c.filename = filename
+        c.doc_type = "session"
+        c.product = "会话附件"
+        c.locator = build_locator("attachment", filename, c.section, c.page, filename)
+        out.append(c)
+    return out
 
 
 def _ensure_meta(conn: sqlite3.Connection) -> None:

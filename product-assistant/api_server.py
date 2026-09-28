@@ -89,6 +89,19 @@ class SearchRequest(BaseModel):
     top_k: int = 8
     category: Optional[str] = None
     doc_type: Optional[str] = None
+    min_score: Optional[float] = 0.2
+    session_id: Optional[str] = None
+    item_ids: Optional[List[str]] = None
+    categories: Optional[List[str]] = None
+
+
+class SessionAttachRequest(BaseModel):
+    """会话级临时附件（仅本会话可检索，随会话删除）"""
+    session_id: str
+    attachment_id: str
+    filename: str
+    text: str
+    title: str = ""
 
 
 class SearchResult(BaseModel):
@@ -228,7 +241,7 @@ def ocr_image_file(path: Path) -> str:
 
 
 def _warmup_async() -> None:
-    """Async warmup of the embedder"""
+    """Async warmup of the embedder + reranker"""
     try:
         idx = get_index()
         if idx.embed_meta.get("vector_ok") or idx.vector_ready:
@@ -241,6 +254,12 @@ def _warmup_async() -> None:
             logger.info("Embedder warmup completed")
     except Exception as e:
         logger.warning(f"Embedder warmup failed: {e}")
+    try:
+        from ingest.embed import get_reranker
+        get_reranker()
+        logger.info("Reranker warmup completed")
+    except Exception as e:
+        logger.warning(f"Reranker warmup failed: {e}")
 
 
 def _start_warmup() -> None:
@@ -289,6 +308,67 @@ async def ocr_upload(file: UploadFile = File(...)):
             tmp_path.unlink(missing_ok=True)
         except Exception:
             pass
+
+
+@app.post("/api/rag/session-attach")
+async def session_attach(req: SessionAttachRequest, background_tasks: BackgroundTasks):
+    """会话临时附件入索引（仅本会话可检索）"""
+    try:
+        if not req.session_id or not req.text.strip():
+            raise HTTPException(status_code=400, detail="session_id/text required")
+        background_tasks.add_task(_index_session_attach, req)
+        return {"status": "success", "session_id": req.session_id, "message": "session attach queued"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"session attach failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _index_session_attach(req: SessionAttachRequest):
+    try:
+        from ingest.pipeline import chunk_session_attachment
+
+        index = get_index()
+        rel_prefix = f"sessions/{req.session_id}/{req.attachment_id}/"
+        index.chunks = [c for c in index.chunks if not c.rel_path.startswith(rel_prefix)]
+        chunks = chunk_session_attachment(
+            req.session_id, req.attachment_id, req.filename, req.text, req.title
+        )
+        index.chunks.extend(chunks)
+        index.build(index.chunks, build_vectors=True)
+        index.save()
+        reload_index()
+        logger.info("Session attach indexed: session=%s chunks=%s", req.session_id, len(chunks))
+    except Exception as e:
+        logger.error(f"Session attach index failed: {e}")
+
+
+@app.delete("/api/rag/session/{session_id}")
+async def drop_session_vectors(session_id: str, background_tasks: BackgroundTasks):
+    """删除会话时，清掉该会话的临时向量"""
+    try:
+        background_tasks.add_task(_drop_session_vectors, session_id)
+        return {"status": "success", "session_id": session_id, "message": "session vectors drop queued"}
+    except Exception as e:
+        logger.error(f"drop session vectors failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _drop_session_vectors(session_id: str):
+    try:
+        index = get_index()
+        prefix = f"sessions/{session_id}/"
+        before = len(index.chunks)
+        index.chunks = [c for c in index.chunks if not c.rel_path.startswith(prefix)]
+        removed = before - len(index.chunks)
+        if removed:
+            index.build(index.chunks, build_vectors=True)
+            index.save()
+            reload_index()
+        logger.info("Dropped %s session chunks for %s", removed, session_id)
+    except Exception as e:
+        logger.error(f"Drop session vectors failed: {e}")
 
 
 @app.get("/api/rag/status", response_model=StatusResponse)
@@ -371,18 +451,21 @@ async def sync_batch(req: SyncBatchRequest, background_tasks: BackgroundTasks):
 
 
 async def _update_index_with_chunks(chunks: List[Chunk], source: str):
-    """Background task to update index with new chunks"""
+    """Background task to update index with new chunks（增量嵌入，不全库重算）"""
     try:
         logger.info(f"Updating index with {len(chunks)} chunks from {source}")
-        
+
         index = get_index()
-        
+
         # Remove old chunks for the same items (精确匹配，避免 9 误伤 90)
-        from ingest.pipeline import _item_owns_path, chunk_platform_items
+        from ingest.pipeline import _item_owns_path
 
         item_ids = set()
         for chunk in chunks:
             if chunk.rel_path.startswith("knowledge_items/"):
+                item_id = chunk.rel_path.split("/")[1]
+                item_ids.add(item_id)
+            elif chunk.rel_path.startswith("attachments/"):
                 item_id = chunk.rel_path.split("/")[1]
                 item_ids.add(item_id)
 
@@ -391,18 +474,24 @@ async def _update_index_with_chunks(chunks: List[Chunk], source: str):
                 c for c in index.chunks
                 if not any(_item_owns_path(c.rel_path, iid) for iid in item_ids)
             ]
-        
+
         # Add new chunks
         index.chunks.extend(chunks)
-        
-        # Rebuild index
+
+        # 增量向量：复用旧 vector，只嵌入新块
         index.build(index.chunks, build_vectors=True)
         index.save()
-        
+
         # Reload index
         reload_index()
-        
-        logger.info(f"Index updated successfully. Total chunks: {index.size}")
+
+        logger.info(
+            "Index updated. total=%s embedded=%s reused=%s source=%s",
+            index.size,
+            index.embed_meta.get("embedded"),
+            index.embed_meta.get("reused"),
+            source,
+        )
     except Exception as e:
         logger.error(f"Failed to update index: {e}")
 
@@ -472,7 +561,11 @@ async def search(req: SearchRequest):
             query=req.query,
             top_k=req.top_k,
             product=req.category,
-            doc_type=req.doc_type
+            doc_type=req.doc_type,
+            min_score=req.min_score if req.min_score is not None else 0.2,
+            session_id=req.session_id,
+            item_ids=req.item_ids,
+            categories=req.categories,
         )
         
         return results

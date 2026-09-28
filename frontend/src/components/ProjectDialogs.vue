@@ -749,7 +749,7 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
   min-width: 0 !important;
   border: 1px solid #e4e9f2;
   border-radius: 10px;
-  background: #fbfdff;
+  background: var(--bg-soft);
   overflow: hidden;
 }
 

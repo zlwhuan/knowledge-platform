@@ -114,13 +114,19 @@ export function useAttachmentPreview({ api, apiBaseUrl, showToast, formatDateTim
   }
 
   async function loadPreviewMeta(attachment) {
-    const { data } = await api.get(`/attachments/${attachment.id}/preview`)
+    const isSession = !!attachment?.isSessionAttachment
+    const base = isSession
+      ? `/skills/session-attachments/${attachment.id}`
+      : `/attachments/${attachment.id}`
+    const { data } = await api.get(`${base}/preview`)
     const meta = data.data || {}
     const siteBaseUrl = apiBaseUrl.replace(/\/api$/, '')
     preview.attachmentId = attachment.id
     preview.kind = meta.kind || ''
     preview.url = /^https?:\/\//.test(meta.previewUrl || '') ? meta.previewUrl : `${siteBaseUrl}${meta.previewUrl || ''}`
-    preview.downloadUrl = `${siteBaseUrl}/api/attachments/${attachment.id}/download`
+    preview.downloadUrl = isSession
+      ? `${siteBaseUrl}/api/skills/session-attachments/${attachment.id}/download`
+      : `${siteBaseUrl}/api/attachments/${attachment.id}/download`
     preview.fileName = meta.fileName || attachment.originalFileName || '附件'
     preview.fileSize = formatFileSize(meta.fileSize ?? attachment.fileSize)
     preview.contentType = meta.contentType || '未知类型'
@@ -140,12 +146,62 @@ export function useAttachmentPreview({ api, apiBaseUrl, showToast, formatDateTim
     try {
       await loadPreviewMeta(attachment)
       if (canUseOnlyOfficeComponent.value) await mountOnlyOfficeEditor()
+      // 焦点落在 iframe/embed 内部时，把 Esc 转出来关闭预览
+      nextTick(() => bindPreviewEscapeHandlers())
     } catch (error) {
       preview.open = false
       showToast(error?.response?.data?.message || '预览失败', 'error')
     } finally {
       previewLoading.value = false
     }
+  }
+
+  /** iframe 内部（同源）+ 父页面：Esc 都能关预览 */
+  function onPreviewEsc(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      preview.open = false
+    }
+  }
+
+  function attachEscToFrame(frame) {
+    if (!frame) return
+    const attach = () => {
+      try {
+        frame.contentDocument?.addEventListener('keydown', onPreviewEsc, true)
+      } catch { /* 跨域忽略 */ }
+      try {
+        // PDF 插件可能不透传到 contentDocument，再挂 contentWindow
+        frame.contentWindow?.addEventListener('keydown', onPreviewEsc, true)
+      } catch { /* 跨域忽略 */ }
+    }
+    attach()
+    frame.addEventListener('load', attach)
+  }
+
+  function bindPreviewEscapeHandlers() {
+    // 父文档（焦点不在 iframe 时）
+    document.addEventListener('keydown', onPreviewEsc, true)
+    window.addEventListener('keydown', onPreviewEsc, true)
+    document.querySelectorAll('iframe.preview-frame').forEach(attachEscToFrame)
+    // embed/object 没有 contentDocument：点击预览区后焦点可能在插件内，
+    // 用 window blur→focus 回拉 + 容器 tabindex 保证 Esc 可达
+    const stage = document.querySelector('.preview-stage')
+    if (stage) {
+      stage.tabIndex = -1
+      stage.addEventListener('keydown', onPreviewEsc)
+    }
+  }
+
+  function unbindPreviewEscapeHandlers() {
+    document.removeEventListener('keydown', onPreviewEsc, true)
+    window.removeEventListener('keydown', onPreviewEsc, true)
+  }
+
+  /** iframe load 后把 Esc 转出来（PDF/HTML 预览） */
+  function onPreviewFrameLoad(e) {
+    attachEscToFrame(e?.target)
   }
 
   async function reloadPreview() {
@@ -164,7 +220,12 @@ export function useAttachmentPreview({ api, apiBaseUrl, showToast, formatDateTim
   }
 
   watch(() => preview.open, (open) => {
-    if (!open) destroyOnlyOfficeEditor()
+    if (open) {
+      nextTick(() => bindPreviewEscapeHandlers())
+    } else {
+      unbindPreviewEscapeHandlers()
+      destroyOnlyOfficeEditor()
+    }
   })
 
   return {
@@ -178,5 +239,6 @@ export function useAttachmentPreview({ api, apiBaseUrl, showToast, formatDateTim
     openPreview,
     reloadPreview,
     destroyOnlyOfficeEditor,
+    onPreviewFrameLoad,
   }
 }

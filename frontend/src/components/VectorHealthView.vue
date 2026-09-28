@@ -72,7 +72,7 @@ onUnmounted(() => {
   <section class="page-section vector-page">
     <el-card shadow="never" class="panel-card">
       <template #header>
-        <div class="vector-page-head">
+        <div class="page-head">
           <div>
             <h2>向量库 · 库健康</h2>
             <p>服务连通性、索引规模、嵌入模型与重建入口（每 15 秒自动刷新）</p>
@@ -160,22 +160,8 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.vector-page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.vector-page-head h2 {
-  margin: 0;
-  font-size: 18px;
-}
-.vector-page-head p {
-  margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
+
+
 .vh-actions {
   display: flex;
   gap: 8px;

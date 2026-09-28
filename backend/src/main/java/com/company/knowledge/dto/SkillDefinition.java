@@ -13,13 +13,19 @@ public record SkillDefinition(
         String icon,
         String systemPrompt,
         List<String> tools,
+        List<String> scopeCategoryIds,
+        List<String> scopeItemIds,
         Integer sortOrder,
-        Boolean enabled
+        Boolean enabled,
+        String ownerUsername
 ) {
     public SkillDefinition {
         if (tools == null) tools = List.of();
+        if (scopeCategoryIds == null) scopeCategoryIds = List.of();
+        if (scopeItemIds == null) scopeItemIds = List.of();
         if (sortOrder == null) sortOrder = 0;
         if (enabled == null) enabled = true;
+        if (ownerUsername == null) ownerUsername = "";
     }
 }
 

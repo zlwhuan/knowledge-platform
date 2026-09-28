@@ -259,7 +259,7 @@ onMounted(load)
   <section class="page-section vector-page">
     <el-card shadow="never" class="panel-card">
       <template #header>
-        <div class="vector-page-head">
+        <div class="page-head">
           <div>
             <h2>向量库 · 结果维护</h2>
             <p>浏览已入库切块/来源，支持重建、移出索引、从数据库重同步</p>
@@ -427,22 +427,8 @@ onMounted(load)
 </template>
 
 <style scoped>
-.vector-page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.vector-page-head h2 {
-  margin: 0;
-  font-size: 18px;
-}
-.vector-page-head p {
-  margin: 4px 0 0;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
+
+
 .vm-toolbar {
   display: flex;
   flex-wrap: wrap;

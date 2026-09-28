@@ -1,5 +1,34 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+
+/** KPI/指标数字 count-up */
+const numState = reactive(new Map())
+function displayNum(raw) {
+  const s = String(raw ?? '')
+  const m = s.match(/^-?\d[\d,]*(\.\d+)?/)
+  if (!m) return s
+  const target = Number(m[0].replace(/,/g, ''))
+  if (!Number.isFinite(target)) return s
+  const key = s
+  if (!numState.has(key)) {
+    numState.set(key, 0)
+    const t0 = performance.now()
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / 700)
+      const eased = 1 - Math.pow(1 - p, 3)
+      numState.set(key, target * eased)
+      if (p < 1) requestAnimationFrame(step)
+      else numState.set(key, target)
+    }
+    requestAnimationFrame(step)
+  }
+  const cur = numState.get(key) ?? target
+  const isInt = Number.isInteger(target)
+  const body = isInt
+    ? Math.round(cur).toLocaleString('zh-CN')
+    : cur.toLocaleString('zh-CN', { maximumFractionDigits: 1 })
+  return s.replace(m[0], body)
+}
 import * as echarts from 'echarts'
 
 const props = defineProps({
@@ -156,7 +185,7 @@ function renderStageChart() {
   if (!stageChart) stageChart = echarts.init(stageChartRef.value)
   const data = stageDistribution.value.map((item) => ({ name: item.stage, value: item.count }))
   stageChart.setOption({
-    color: ['#1e5aa8', '#3d7cc9', '#6ea0dc', '#9bc0e8', '#c5daf0', '#7f93ad'],
+    color: ['var(--t-strong)', 'var(--t-body)', 'var(--t-muted)', 'var(--t-faint)', 'var(--line-strong)', 'var(--line)'],
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     series: [{
       type: 'pie',
@@ -179,14 +208,26 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   <section class="home-cockpit">
     <header class="cockpit-topbar">
       <div class="cockpit-title">
-        <h2>经营全景概览</h2>
-        <p>整合合同回款、项目风险、客户跟进等关键业务指标，支持快速决策与风险预警。</p>
+        <h2>经营全景</h2>
+        <p>合同回款 · 项目风险 · 客户跟进，一屏决策</p>
       </div>
       <div class="cockpit-actions">
-        <el-button type="primary" @click="emit('open-project-view', 'project-tracker')">项目追踪</el-button>
-        <el-button @click="emit('open-system-view', 'customers')">客户管理</el-button>
-        <el-button @click="emit('open-all-library')">知识库</el-button>
-        <el-button v-if="canCreateContent" @click="emit('start-create-content')">新增资料</el-button>
+        <button type="button" class="top-btn top-btn-ghost" @click="emit('open-project-view', 'project-tracker')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
+          项目追踪
+        </button>
+        <button type="button" class="top-btn top-btn-ghost" @click="emit('open-system-view', 'customers')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><circle cx="18" cy="9" r="3"/></svg>
+          客户管理
+        </button>
+        <button type="button" class="top-btn top-btn-ghost" @click="emit('open-all-library')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14"/><path d="M4 19h16"/><path d="M8 7h8M8 11h8"/></svg>
+          知识库
+        </button>
+        <button v-if="canCreateContent" type="button" class="top-btn top-btn-solid" @click="emit('start-create-content')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          新增资料
+        </button>
       </div>
     </header>
 
@@ -198,7 +239,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
         :class="`tone-${item.tone}`"
       >
         <span class="kpi-label">{{ item.label }}</span>
-        <strong class="kpi-value">{{ item.value }}</strong>
+        <strong class="kpi-value">{{ displayNum(item.value) }}</strong>
         <small class="kpi-hint">{{ item.hint }}</small>
       </div>
     </div>
@@ -206,7 +247,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
     <div class="stat-strip">
       <div v-for="item in secondaryStats" :key="item.label" class="stat-item">
         <span>{{ item.label }}</span>
-        <strong>{{ item.value }}</strong>
+        <strong>{{ displayNum(item.value) }}</strong>
         <small>{{ item.hint }}</small>
       </div>
     </div>
@@ -220,35 +261,36 @@ onBeforeUnmount(() => { stageChart?.dispose() })
               <p>合同与回款健康度，达成率优先看。</p>
             </div>
             <el-tag :type="collectionRate >= 70 ? 'success' : collectionRate >= 40 ? 'warning' : 'danger'" size="small">
-              达成 {{ collectionRate }}%
+              达成 {{ displayNum(collectionRate + '%') }}
             </el-tag>
           </div>
           <div class="finance-body">
             <div class="finance-numbers">
               <div class="finance-metric">
                 <label>累计合同额</label>
-                <strong>¥{{ contractAmount.toLocaleString('zh-CN') }}</strong>
+                <strong>¥{{ displayNum(contractAmount.toLocaleString('zh-CN')) }}</strong>
               </div>
               <div class="finance-metric">
                 <label>累计回款</label>
-                <strong class="is-received">¥{{ receivedAmount.toLocaleString('zh-CN') }}</strong>
+                <strong class="is-received">¥{{ displayNum(receivedAmount.toLocaleString('zh-CN')) }}</strong>
               </div>
               <div class="finance-metric">
                 <label>待回款缺口</label>
-                <strong class="is-gap">¥{{ collectionGap.toLocaleString('zh-CN') }}</strong>
+                <strong class="is-gap">¥{{ displayNum(collectionGap.toLocaleString('zh-CN')) }}</strong>
               </div>
             </div>
             <div class="finance-progress-block">
               <div class="finance-progress-top">
                 <span>回款达成率</span>
-                <strong>{{ collectionRate }}%</strong>
+                <strong>{{ displayNum(collectionRate + '%') }}</strong>
               </div>
-              <el-progress
-                :percentage="collectionRate"
-                :stroke-width="12"
-                :status="collectionRate >= 70 ? 'success' : collectionRate >= 40 ? 'warning' : 'exception'"
-                :show-text="false"
-              />
+              <div class="mini-track">
+                <div
+                  class="mini-track-fill"
+                  :class="collectionRate >= 70 ? 'is-ok' : collectionRate >= 40 ? 'is-warn' : 'is-bad'"
+                  :style="{ width: `${Math.min(100, collectionRate)}%` }"
+                ></div>
+              </div>
               <p class="finance-caption">缺口金额用于财务催收排期，不替代项目维度明细。</p>
             </div>
           </div>
@@ -287,7 +329,9 @@ onBeforeUnmount(() => { stageChart?.dispose() })
               <div class="bucket-list">
                 <div v-for="bucket in progressBuckets" :key="bucket.label" class="bucket-row">
                   <div class="bucket-label">{{ bucket.label }}</div>
-                  <el-progress :percentage="bucket.percent" :stroke-width="8" :status="bucket.type" :show-text="false" />
+                  <div class="stage-row-bar">
+                    <div class="stage-row-bar-inner" :class="`tone-${bucket.tone}`" :style="{ width: `${bucket.percent}%` }"></div>
+                  </div>
                   <div class="bucket-value" :class="`tone-${bucket.tone}`">{{ bucket.count }}个</div>
                 </div>
               </div>
@@ -384,148 +428,199 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 </template>
 
 <style scoped>
+/* ===== 高级感视觉规范 =====
+   原则：近白画布、无重描边、阴影几乎不可见、
+   去掉色条/渐变/虚线，数字与留白当主角 */
 .home-cockpit {
-  --hd-ink: #0f2f5c;
-  --hd-ink-soft: #334861;
-  --hd-muted: #6b7c93;
-  --hd-line: #d7e3f1;
-  --hd-surface: #ffffff;
-  --hd-soft: #f7fafd;
-  --hd-accent: #1e5aa8;
-  --hd-accent-soft: #eaf2fc;
-  --hd-danger: #c45c5c;
-  --hd-danger-soft: #fdf0f0;
-  --hd-warning: #b7791f;
-  --hd-warning-soft: #fbf5e9;
-  --hd-success: #2f7d5a;
-  --hd-success-soft: #edf7f1;
+  --ink: var(--t-strong);
+  --ink-2: var(--t-body);
+  --muted: var(--t-muted);
+  --faint: var(--t-faint);
+  --line: rgba(17, 24, 39, 0.06);
+  --line-2: rgba(17, 24, 39, 0.1);
+  --surface: var(--bg-card);
+  --canvas: var(--bg-page);
+  --soft: var(--bg-soft);
+  --accent: var(--t-muted);
+  --accent-ink: var(--t-body);
+  --danger: var(--sem-danger);
+  --warning: var(--sem-warning);
+  --success: var(--sem-success);
+  --r: 14px;
+  --r-sm: 10px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-2: 0 4px 16px rgba(16, 24, 40, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  font-family: -apple-system, "SF Pro Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
+/* —— 顶栏：无框，像产品页头 —— */
 .cockpit-topbar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
-  align-items: flex-start;
-  padding: 12px 14px;
-  border: 1px solid var(--hd-line);
-  border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(30, 90, 168, 0.08), transparent 42%),
-    var(--hd-surface);
-  box-shadow: 0 8px 24px rgba(15, 47, 92, 0.04);
+  padding: 4px 2px 2px;
 }
 
 .cockpit-title h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 650;
-  color: var(--hd-ink);
-  letter-spacing: 0.01em;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
 .cockpit-title p {
-  margin: 6px 0 0;
-  color: var(--hd-muted);
-  line-height: 1.6;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--faint);
+  letter-spacing: 0.01em;
 }
 
 .cockpit-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
+  align-items: center;
 }
 
+.top-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.top-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+}
+
+.top-btn-ghost:hover {
+  background: var(--soft);
+  border-color: var(--t-muted);
+}
+
+.top-btn-solid {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: #fff;
+}
+
+.top-btn-solid:hover {
+  background: var(--t-strong);
+}
+
+.top-btn:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
+/* —— KPI：无边框卡片，数字即视觉 —— */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .kpi-card {
-  position: relative;
   padding: 14px 16px 12px;
-  border: 1px solid var(--hd-line);
-  border-radius: 14px;
-  background: var(--hd-surface);
-  box-shadow: 0 6px 18px rgba(15, 47, 92, 0.03);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  overflow: hidden;
+  gap: 2px;
+  transition: box-shadow 0.2s ease;
 }
 
-.kpi-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--hd-accent);
+.kpi-card:hover {
+  box-shadow: var(--shadow-2);
 }
 
-.kpi-card.tone-danger::before { background: var(--hd-danger); }
-.kpi-card.tone-warning::before { background: var(--hd-warning); }
-.kpi-card.tone-accent::before { background: var(--hd-accent); }
-.kpi-card.tone-neutral::before { background: #9bb4d0; }
-
-.kpi-card.tone-danger .kpi-value { color: var(--hd-danger); }
-.kpi-card.tone-warning .kpi-value { color: var(--hd-warning); }
+/* 语义色只染数字，不再画左侧色条 */
+.kpi-card.tone-danger .kpi-value { color: var(--danger); }
+.kpi-card.tone-warning .kpi-value { color: var(--warning); }
+.kpi-card.tone-accent .kpi-value { color: var(--ink); }
 
 .kpi-label {
-  font-size: 12px;
-  color: var(--hd-muted);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--faint);
+  letter-spacing: 0.02em;
 }
 
 .kpi-value {
-  font-size: 28px;
-  font-weight: 650;
-  line-height: 1.15;
-  color: var(--hd-ink);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  margin: 2px 0;
 }
 
 .kpi-hint {
-  font-size: 12px;
-  color: #8a98ab;
+  font-size: 11px;
+  color: var(--faint);
 }
 
+/* —— 次级指标：无框一行，靠字重分层 —— */
 .stat-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .stat-item {
-  padding: 10px 12px;
-  border: 1px dashed var(--hd-line);
-  border-radius: 12px;
-  background: var(--hd-soft);
+  padding: 10px 16px;
+  border-right: 1px solid var(--line);
+}
+
+.stat-item:last-child {
+  border-right: none;
 }
 
 .stat-item span,
 .stat-item small {
   display: block;
-  color: var(--hd-muted);
-  font-size: 12px;
+  color: var(--faint);
+  font-size: 11px;
 }
 
 .stat-item strong {
   display: block;
-  margin: 4px 0 2px;
-  font-size: 16px;
-  color: var(--hd-ink-soft);
+  margin: 1px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
+/* —— 布局 —— */
 .cockpit-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
-  gap: 8px;
+  gap: 10px;
   align-items: start;
 }
 
@@ -533,56 +628,64 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .cockpit-side {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 
+/* —— 面板：白底、极细边、无阴影堆叠感 —— */
 .hd-panel {
-  border: 1px solid var(--hd-line);
-  border-radius: 16px;
-  background: var(--hd-surface);
-  box-shadow: 0 6px 18px rgba(15, 47, 92, 0.03);
-  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
 }
 
 .hd-panel-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .hd-panel-head h3 {
   margin: 0;
-  font-size: 16px;
-  color: var(--hd-ink);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
 }
 
 .hd-panel-head p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--hd-muted);
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--faint);
 }
 
 .radar-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   justify-content: flex-end;
 }
 
 .radar-count,
 .side-count {
-  font-size: 12px;
-  color: var(--hd-muted);
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  background: var(--soft);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
+/* —— 经营结果 —— */
 .finance-body {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .finance-numbers {
@@ -592,80 +695,92 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .finance-metric {
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--hd-soft);
-  border: 1px solid transparent;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--soft);
 }
 
 .finance-metric label {
   display: block;
-  font-size: 12px;
-  color: var(--hd-muted);
+  font-size: 11px;
+  color: var(--faint);
 }
 
 .finance-metric strong {
   display: block;
-  margin-top: 6px;
-  font-size: 20px;
-  color: var(--hd-ink);
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-.finance-metric strong.is-received { color: var(--hd-success); }
-.finance-metric strong.is-gap { color: var(--hd-warning); }
+.finance-metric strong.is-received { color: var(--success); }
+.finance-metric strong.is-gap { color: var(--warning); }
 
 .finance-progress-block {
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--hd-line);
-  background: linear-gradient(180deg, #f8fbff, #eef5ff);
+  border-radius: var(--r-sm);
+  background: var(--soft);
+  border: 1px solid var(--line);
 }
 
 .finance-progress-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  color: var(--hd-ink-soft);
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.finance-progress-block .mini-track {
+  margin-top: 2px;
+  margin-bottom: 8px;
 }
 
 .finance-progress-top strong {
-  font-size: 22px;
-  color: var(--hd-ink);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .finance-caption {
-  margin: 10px 0 0;
-  font-size: 12px;
-  color: var(--hd-muted);
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--faint);
 }
 
+/* —— 雷达 —— */
 .radar-grid {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .radar-block {
-  border: 1px solid #e7eef8;
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--hd-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  background: var(--soft);
 }
 
 .radar-block h4 {
-  margin: 0 0 10px;
-  font-size: 13px;
-  color: var(--hd-ink-soft);
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--faint);
+  letter-spacing: 0.02em;
 }
 
 .stage-distribution {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .stage-row {
@@ -679,8 +794,8 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .stage-row-value,
 .bucket-label,
 .bucket-value {
-  font-size: 12px;
-  color: var(--hd-muted);
+  font-size: 11px;
+  color: var(--muted);
 }
 
 .stage-row-value,
@@ -689,32 +804,59 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   font-variant-numeric: tabular-nums;
 }
 
-.bucket-value.tone-danger { color: var(--hd-danger); }
-.bucket-value.tone-warning { color: var(--hd-warning); }
-.bucket-value.tone-success { color: var(--hd-success); }
+.bucket-value.tone-danger { color: var(--danger); }
+.bucket-value.tone-warning { color: var(--warning); }
+.bucket-value.tone-success { color: var(--success); }
 
 .stage-row-bar {
-  height: 7px;
+  height: 4px;
   border-radius: 999px;
-  background: #e3ebf5;
+  background: rgba(17, 24, 39, 0.08);
   overflow: hidden;
 }
 
 .stage-row-bar-inner {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #1e5aa8, #6ea0dc);
+  background: var(--ink);
+  transition: width 0.5s ease;
 }
 
+.stage-row-bar-inner.tone-danger { background: var(--danger); }
+.stage-row-bar-inner.tone-warning { background: var(--warning); }
+.stage-row-bar-inner.tone-success { background: var(--success); }
+
+.mini-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.08);
+  overflow: hidden;
+}
+
+.mini-track-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.mini-track-fill.is-ok { background: var(--success); }
+.mini-track-fill.is-warn { background: var(--warning); }
+.mini-track-fill.is-bad { background: var(--danger); }
+
+.finance-progress-block {
+  position: relative;
+}
+
+
 .stage-chart {
-  height: 220px;
-  margin-top: 8px;
+  height: 210px;
+  margin-top: 6px;
 }
 
 .bucket-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .bucket-row {
@@ -724,6 +866,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   align-items: center;
 }
 
+/* —— 焦点项目：靠 hover 表现，无强边框 —— */
 .focus-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -731,23 +874,22 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .focus-card {
-  border: 1px solid var(--hd-line);
-  border-radius: 12px;
-  padding: 12px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 11px 13px;
+  background: var(--surface);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .focus-card:hover {
-  border-color: #8fb6e4;
-  box-shadow: 0 8px 18px rgba(30, 90, 168, 0.08);
-  transform: translateY(-1px);
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-2);
 }
 
 .focus-card:focus-visible {
-  outline: 2px solid rgba(30, 90, 168, 0.45);
+  outline: 2px solid rgba(59, 130, 246, 0.35);
   outline-offset: 2px;
 }
 
@@ -759,57 +901,69 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .focus-head strong {
-  color: var(--hd-ink);
-  font-size: 14px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
 .focus-meta,
 .focus-owner {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--hd-muted);
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--faint);
 }
 
 .focus-card p {
-  margin: 8px 0 0;
-  color: var(--hd-ink-soft);
-  font-size: 12px;
-  line-height: 1.55;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
+/* —— 侧栏列表：去盒子，行内分隔 —— */
 .side-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .side-row,
 .side-action,
 .side-feed {
   width: 100%;
-  border: 1px solid #e7eef8;
-  border-radius: 12px;
-  background: var(--hd-soft);
-  padding: 10px 12px;
+  border: none;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  padding: 9px 2px;
+}
+
+.side-row:first-child,
+.side-action:first-child,
+.side-feed:first-child {
+  border-top: none;
+  padding-top: 2px;
 }
 
 .side-action,
 .side-feed {
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .side-action:hover,
 .side-feed:hover {
-  border-color: #9ec0e8;
-  background: #fff;
+  background: var(--soft);
 }
 
 .side-action:focus-visible,
 .side-feed:focus-visible {
-  outline: 2px solid rgba(30, 90, 168, 0.45);
+  outline: 2px solid rgba(59, 130, 246, 0.35);
   outline-offset: 2px;
 }
 
@@ -824,35 +978,36 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .side-row-main strong,
 .side-action strong,
 .feed-top strong {
-  color: var(--hd-ink);
-  font-size: 13px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .side-row-main span,
 .side-action span,
 .side-feed small {
-  color: var(--hd-muted);
-  font-size: 12px;
+  color: var(--faint);
+  font-size: 11px;
 }
 
 .side-row-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
-  color: var(--hd-muted);
-  font-size: 12px;
+  gap: 3px;
+  color: var(--faint);
+  font-size: 11px;
 }
 
 .side-action span {
   display: block;
-  margin-top: 4px;
+  margin-top: 3px;
   line-height: 1.45;
 }
 
@@ -864,25 +1019,25 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .feed-top span {
-  color: var(--hd-accent);
-  font-size: 12px;
+  color: var(--accent-ink);
+  font-size: 11px;
 }
 
 .side-feed p {
-  margin: 6px 0 4px;
-  color: var(--hd-ink-soft);
-  font-size: 12px;
+  margin: 4px 0 2px;
+  color: var(--muted);
+  font-size: 11px;
   line-height: 1.5;
 }
 
 .hd-empty {
-  padding: 18px 12px;
+  padding: 16px 8px;
   text-align: center;
-  color: var(--hd-muted);
+  color: var(--faint);
   font-size: 12px;
-  border: 1px dashed var(--hd-line);
-  border-radius: 12px;
-  background: var(--hd-soft);
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--soft);
 }
 
 @media (max-width: 1400px) {
@@ -901,6 +1056,14 @@ onBeforeUnmount(() => { stageChart?.dispose() })
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .stat-item:nth-child(2n) {
+    border-right: none;
+  }
+
+  .stat-item:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+
   .cockpit-layout,
   .finance-body,
   .radar-grid,
@@ -910,6 +1073,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
   .cockpit-topbar {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .cockpit-actions {

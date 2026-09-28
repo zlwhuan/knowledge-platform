@@ -73,6 +73,33 @@ public class LlmClient {
         return model;
     }
 
+    /** 前端可选的模型名 → 实际请求模型 ID */
+    private String resolveModel(String modelOverride) {
+        if (modelOverride != null && !modelOverride.isBlank()) {
+            return mapModelName(modelOverride.trim());
+        }
+        return model == null ? "" : model.trim();
+    }
+
+    /** UI 展示名映射到网关模型 ID；未知名原样透传 */
+    private String mapModelName(String name) {
+        String n = name.trim();
+        // 展示名 → 网关 ID（与 Start-Backend / LLM_MODEL 保持一致）
+        switch (n) {
+            case "MiMo V2.6 Flash":
+            case "mimo-v2.6-flash":
+                return "mimo-v2.6-flash";
+            case "MiMo V2.6 Pro":
+            case "mimo-v2.6-pro":
+                return "mimo-v2.6-pro";
+            case "MiMo V2.5":
+            case "mimo-v2.5":
+                return "mimo-v2.5";
+            default:
+                return n;
+        }
+    }
+
     public String keyFingerprint() {
         String k = cleanKey(apiKey);
         if (k.isBlank()) return "(empty)";
@@ -84,12 +111,17 @@ public class LlmClient {
      * 发起一次 chat.completions（含可选 tools），返回完整 JSON 节点
      */
     public JsonNode chatCompletion(JsonNode messages, JsonNode tools) {
+        return chatCompletion(messages, tools, null);
+    }
+
+    /** modelOverride：会话内切换模型；为空则用默认 LLM_MODEL */
+    public JsonNode chatCompletion(JsonNode messages, JsonNode tools, String modelOverride) {
         if (!isConfigured()) {
             throw new IllegalStateException("LLM 未配置：请设置 LLM_API_BASE_URL / LLM_API_KEY / LLM_MODEL");
         }
 
         ObjectNode body = objectMapper.createObjectNode();
-        body.put("model", model.trim());
+        body.put("model", resolveModel(modelOverride));
         body.put("temperature", 0.3);
         body.set("messages", messages);
         if (tools != null && tools.isArray() && tools.size() > 0) {
@@ -173,12 +205,18 @@ public class LlmClient {
      * 无工具轮次时前端可逐字展示；有 tool_calls 时走完整 JSON 继续循环。
      */
     public JsonNode chatCompletionStream(JsonNode messages, JsonNode tools, java.util.function.Consumer<String> onDelta) {
+        return chatCompletionStream(messages, tools, null, onDelta);
+    }
+
+    /** modelOverride：会话内切换模型；为空则用默认 LLM_MODEL */
+    public JsonNode chatCompletionStream(JsonNode messages, JsonNode tools, String modelOverride,
+                                         java.util.function.Consumer<String> onDelta) {
         if (!isConfigured()) {
             throw new IllegalStateException("LLM 未配置：请设置 LLM_API_BASE_URL / LLM_API_KEY / LLM_MODEL");
         }
 
         ObjectNode body = objectMapper.createObjectNode();
-        body.put("model", model.trim());
+        body.put("model", resolveModel(modelOverride));
         body.put("temperature", 0.3);
         body.put("stream", true);
         body.set("messages", messages);

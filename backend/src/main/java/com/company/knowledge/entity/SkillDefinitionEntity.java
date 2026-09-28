@@ -39,6 +39,18 @@ public class SkillDefinitionEntity {
     @Column(length = 200)
     private String tools;
 
+    /** 绑定知识分类（逗号分隔分类ID，空=不限） */
+    @Column(name = "scope_category_ids", length = 500)
+    private String scopeCategoryIds;
+
+    /** 绑定知识条目（逗号分隔条目ID，空=不限） */
+    @Column(name = "scope_item_ids", length = 500)
+    private String scopeItemIds;
+
+    /** 个人技能归属用户名；空 = 公共技能 */
+    @Column(name = "owner_username", length = 100)
+    private String ownerUsername;
+
     @Column(nullable = false)
     private Integer sortOrder = 0;
 
@@ -68,6 +80,12 @@ public class SkillDefinitionEntity {
     public void setSystemPrompt(String systemPrompt) { this.systemPrompt = systemPrompt; }
     public String getTools() { return tools; }
     public void setTools(String tools) { this.tools = tools; }
+    public String getScopeCategoryIds() { return scopeCategoryIds; }
+    public void setScopeCategoryIds(String scopeCategoryIds) { this.scopeCategoryIds = scopeCategoryIds; }
+    public String getScopeItemIds() { return scopeItemIds; }
+    public void setScopeItemIds(String scopeItemIds) { this.scopeItemIds = scopeItemIds; }
+    public String getOwnerUsername() { return ownerUsername; }
+    public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
     public Integer getSortOrder() { return sortOrder; }
     public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
     public Boolean getEnabled() { return enabled; }

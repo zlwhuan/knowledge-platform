@@ -55,6 +55,16 @@ public interface RagService {
      */
     List<RagSearchResult> search(String query, int topK, String category, String docType);
 
+    /** 会话级检索：包含该会话临时附件，排除其他会话附件 */
+    List<RagSearchResult> search(String query, int topK, String category, String docType, String sessionId);
+
+    /** 带知识条目白名单的检索（技能绑定范围） */
+    List<RagSearchResult> search(String query, int topK, String category, String docType, String sessionId, List<String> itemIds);
+
+    /** 技能绑定范围：分类树白名单 + 知识条目白名单（任一命中即可） */
+    List<RagSearchResult> search(String query, int topK, String category, String docType, String sessionId,
+                                 List<String> itemIds, List<String> categories);
+
     /**
      * Search the knowledge base with default parameters
      * @param query The search query

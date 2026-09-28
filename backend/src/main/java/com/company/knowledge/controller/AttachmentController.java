@@ -53,6 +53,12 @@ public class AttachmentController {
         return ApiResponse.ok(attachmentService.listByItemId(itemId));
     }
 
+    /** 按附件 ID 查详情（含所属知识条目 itemId），供向量检索跳转 */
+    @GetMapping("/{attachmentId}")
+    public ApiResponse<AttachmentDetailResponse> getDetail(@PathVariable Long attachmentId) {
+        return ApiResponse.ok(attachmentService.getDetail(attachmentId));
+    }
+
     @PostMapping("/upload")
     public ApiResponse<AttachmentResponse> upload(@RequestHeader("X-Auth-Token") String token, @RequestParam Long itemId, @RequestParam MultipartFile file) {
         UserAccount user = authService.requireUser(token);

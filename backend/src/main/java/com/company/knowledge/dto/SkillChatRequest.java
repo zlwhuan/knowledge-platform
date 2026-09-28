@@ -8,7 +8,10 @@ import java.util.Map;
  */
 public record SkillChatRequest(
         String skillId,
+        List<String> skillIds,
         String message,
-        List<Map<String, String>> history
+        List<Map<String, String>> history,
+        Long sessionId,
+        String model
 ) {
 }

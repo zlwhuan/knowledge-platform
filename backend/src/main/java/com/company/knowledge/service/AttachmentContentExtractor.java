@@ -302,20 +302,20 @@ public class AttachmentContentExtractor {
     }
 
     /**
-     * Common method to extract text from Excel workbook
+     * Extract text from an Excel workbook（支持万行级表格，全量抽取）
      */
     private String excelWorkbookToString(Workbook workbook) {
         StringBuilder content = new StringBuilder();
-        
+
         for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
             Sheet sheet = workbook.getSheetAt(sheetIndex);
             String sheetName = sheet.getSheetName();
             content.append("# ").append(sheetName).append("\n");
-            
+
             // Find header row
             Row headerRow = null;
             int dataStartRow = 0;
-            
+
             // Look for header in first few rows
             for (int i = 0; i < Math.min(8, sheet.getLastRowNum() + 1); i++) {
                 Row row = sheet.getRow(i);
@@ -338,7 +338,7 @@ public class AttachmentContentExtractor {
                     }
                 }
             }
-            
+
             // Extract header
             if (headerRow != null) {
                 List<String> headerCells = new ArrayList<>();
@@ -349,28 +349,27 @@ public class AttachmentContentExtractor {
                 }
                 content.append(String.join(" | ", headerCells)).append("\n");
             }
-            
-            // Extract data rows
+
+            // Extract data rows（全量）
             for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
-                
+
                 List<String> rowCells = new ArrayList<>();
                 for (int j = 0; j < row.getLastCellNum(); j++) {
                     Cell cell = row.getCell(j);
                     String value = cell != null ? getCellValue(cell).trim() : "";
                     rowCells.add(value);
                 }
-                
-                // Skip empty rows
+
                 if (rowCells.stream().allMatch(String::isEmpty)) {
                     continue;
                 }
-                
+
                 content.append(String.join(" | ", rowCells)).append("\n");
             }
         }
-        
+
         return content.toString();
     }
 
