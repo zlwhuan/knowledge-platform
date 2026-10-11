@@ -185,14 +185,14 @@ function renderStageChart() {
   if (!stageChart) stageChart = echarts.init(stageChartRef.value)
   const data = stageDistribution.value.map((item) => ({ name: item.stage, value: item.count }))
   stageChart.setOption({
-    color: ['var(--t-strong)', 'var(--t-body)', 'var(--t-muted)', 'var(--t-faint)', 'var(--line-strong)', 'var(--line)'],
+    color: ['#3b82f6', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899', '#10b981', '#f97316', '#6366f1'],
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     series: [{
       type: 'pie',
       radius: ['42%', '68%'],
       avoidLabelOverlap: true,
       itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
-      label: { show: true, formatter: '{b}\n{d}%', color: '#4a5d73', fontSize: 11 },
+      label: { show: true, formatter: '{b}\n{d}%', color: 'var(--t-muted)', fontSize: 11 },
       labelLine: { length: 8, length2: 6 },
       data,
     }]
@@ -316,7 +316,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
                 <div v-for="item in stageDistribution" :key="item.stage" class="stage-row">
                   <div class="stage-row-title">{{ item.stage }}</div>
                   <div class="stage-row-bar">
-                    <div class="stage-row-bar-inner" :style="{ width: `${item.percent}%` }"></div>
+                    <div class="stage-row-bar-inner" :class="`tone-${(stageDistribution.indexOf(item) % 6) + 1}`" :style="{ width: `${item.percent}%` }"></div>
                   </div>
                   <div class="stage-row-value">{{ item.count }} · {{ item.percent }}%</div>
                 </div>
@@ -432,7 +432,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
    原则：近白画布、无重描边、阴影几乎不可见、
    去掉色条/渐变/虚线，数字与留白当主角 */
 .home-cockpit {
-  --ink: var(--t-strong);
+  --ink: #1f2937;
   --ink-2: var(--t-body);
   --muted: var(--t-muted);
   --faint: var(--t-faint);
@@ -448,8 +448,8 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   --success: var(--sem-success);
   --r: 14px;
   --r-sm: 10px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-2: 0 4px 16px rgba(16, 24, 40, 0.06);
+  --shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+  --shadow-2: 0 4px 16px rgba(17, 24, 39, 0.06);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -467,16 +467,16 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .cockpit-title h2 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 650;
-  color: var(--ink);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--t-strong);
   letter-spacing: -0.03em;
   line-height: 1.2;
 }
 
 .cockpit-title p {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--faint);
   letter-spacing: 0.01em;
 }
@@ -496,7 +496,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   height: 30px;
   padding: 0 11px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -505,7 +505,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .top-btn-ghost {
   background: transparent;
   border: 1px solid var(--line-2);
-  color: var(--ink-2);
+  color: var(--t-body);
 }
 
 .top-btn-ghost:hover {
@@ -524,7 +524,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .top-btn:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline: 2px solid rgba(17, 24, 39, 0.35);
   outline-offset: 2px;
 }
 
@@ -536,7 +536,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .kpi-card {
-  padding: 14px 16px 12px;
+  padding: 12px 14px 10px;
   border-radius: var(--r);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -554,28 +554,28 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 /* 语义色只染数字，不再画左侧色条 */
 .kpi-card.tone-danger .kpi-value { color: var(--danger); }
 .kpi-card.tone-warning .kpi-value { color: var(--warning); }
-.kpi-card.tone-accent .kpi-value { color: var(--ink); }
+.kpi-card.tone-accent .kpi-value { color: var(--t-body); }
 
 .kpi-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--faint);
-  letter-spacing: 0.02em;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--t-faint);
+  letter-spacing: 0.01em;
 }
 
 .kpi-value {
-  font-size: 21px;
+  font-size: 26px;
   font-weight: 600;
-  line-height: 1.2;
-  color: var(--ink);
+  line-height: 1.15;
+  color: var(--t-strong);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
   margin: 2px 0;
 }
 
 .kpi-hint {
-  font-size: 11px;
-  color: var(--faint);
+  font-size: 10px;
+  color: var(--t-faint);
 }
 
 /* —— 次级指标：无框一行，靠字重分层 —— */
@@ -603,15 +603,15 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .stat-item small {
   display: block;
   color: var(--faint);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .stat-item strong {
   display: block;
   margin: 1px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--t-strong);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -651,15 +651,15 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .hd-panel-head h3 {
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
+  color: var(--t-muted);
   letter-spacing: -0.01em;
 }
 
 .hd-panel-head p {
   margin: 2px 0 0;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--faint);
 }
 
@@ -673,7 +673,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .radar-count,
 .side-count {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--faint);
   font-variant-numeric: tabular-nums;
   background: var(--soft);
@@ -702,16 +702,16 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .finance-metric label {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--faint);
 }
 
 .finance-metric strong {
   display: block;
   margin-top: 3px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--t-strong);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
@@ -732,7 +732,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   align-items: center;
   margin-bottom: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 
 .finance-progress-block .mini-track {
@@ -741,16 +741,16 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .finance-progress-top strong {
-  font-size: 20px;
+  font-size: var(--fs-xl);
   font-weight: 600;
-  color: var(--ink);
+  color: var(--t-body);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
 .finance-caption {
   margin: 8px 0 0;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--faint);
 }
 
@@ -771,7 +771,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .radar-block h4 {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--faint);
   letter-spacing: 0.02em;
@@ -794,7 +794,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .stage-row-value,
 .bucket-label,
 .bucket-value {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--muted);
 }
 
@@ -818,9 +818,14 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .stage-row-bar-inner {
   height: 100%;
   border-radius: 999px;
-  background: var(--ink);
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
   transition: width 0.5s ease;
 }
+.stage-row-bar-inner.tone-2 { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.stage-row-bar-inner.tone-3 { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stage-row-bar-inner.tone-4 { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.stage-row-bar-inner.tone-5 { background: linear-gradient(90deg, #10b981, #34d399); }
+.stage-row-bar-inner.tone-6 { background: linear-gradient(90deg, #f97316, #fb923c); }
 
 .stage-row-bar-inner.tone-danger { background: var(--danger); }
 .stage-row-bar-inner.tone-warning { background: var(--warning); }
@@ -889,7 +894,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .focus-card:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline: 2px solid rgba(17, 24, 39, 0.35);
   outline-offset: 2px;
 }
 
@@ -901,8 +906,8 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 }
 
 .focus-head strong {
-  color: var(--ink);
-  font-size: 12px;
+  color: var(--t-strong);
+  font-size: var(--fs-body-sm);
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: -0.01em;
@@ -911,14 +916,14 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .focus-meta,
 .focus-owner {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--faint);
 }
 
 .focus-card p {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.5;
 }
 
@@ -963,7 +968,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .side-action:focus-visible,
 .side-feed:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline: 2px solid rgba(17, 24, 39, 0.35);
   outline-offset: 2px;
 }
 
@@ -984,16 +989,16 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 .side-row-main strong,
 .side-action strong,
 .feed-top strong {
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--t-body);
+  font-size: var(--fs-small);
+  font-weight: 500;
 }
 
 .side-row-main span,
 .side-action span,
 .side-feed small {
   color: var(--faint);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .side-row-meta {
@@ -1002,7 +1007,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   align-items: flex-end;
   gap: 3px;
   color: var(--faint);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .side-action span {
@@ -1020,13 +1025,13 @@ onBeforeUnmount(() => { stageChart?.dispose() })
 
 .feed-top span {
   color: var(--accent-ink);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 
 .side-feed p {
   margin: 4px 0 2px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.5;
 }
 
@@ -1034,7 +1039,7 @@ onBeforeUnmount(() => { stageChart?.dispose() })
   padding: 16px 8px;
   text-align: center;
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-small);
   border: 1px dashed var(--line-2);
   border-radius: var(--r-sm);
   background: var(--soft);

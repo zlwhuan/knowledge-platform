@@ -136,7 +136,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 
 <template>
   <div class="weekly-progress-view">
-    <div class="weekly-toolbar">
+    <div class="page-head weekly-toolbar">
       <el-button-group>
         <el-button @click="prevWeek">&lt;</el-button>
         <el-button @click="goToThisWeek">本周</el-button>
@@ -150,7 +150,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
       </div>
     </div>
 
-    <div class="weekly-filter-bar">
+    <div class="page-toolbar weekly-filter-bar">
       <el-select v-model="filters.projectName" clearable filterable placeholder="项目名称" style="width: 140px">
         <el-option v-for="name in projectNameOptions" :key="`proj-${name}`" :label="name" :value="name" />
       </el-select>
@@ -226,7 +226,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .week-label {
   font-weight: 650;
-  font-size: 15px;
+  font-size: var(--fs-body-sm);
   color: var(--hd-ink);
   font-variant-numeric: tabular-nums;
 }
@@ -243,7 +243,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   padding: 10px 12px;
   background: var(--hd-soft);
   border: 1px solid var(--hd-line);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 .empty-state {
   padding: 40px 0;
@@ -265,7 +265,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   gap: 4px;
   padding: 8px 6px;
   border-bottom: 2px solid var(--hd-line);
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--hd-muted);
 }
 .day-header.day-today {
@@ -278,7 +278,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .day-date {
   color: var(--hd-muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 .day-records {
   display: flex;
@@ -290,14 +290,14 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 .day-empty {
   text-align: center;
   color: var(--t-muted);
-  font-size: 12px;
+  font-size: var(--fs-small);
   padding: 20px 0;
 }
 .record-card {
   background: var(--hd-soft);
   border-radius: 10px;
   padding: 8px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   border: 1px solid var(--hd-line);
 }
 .record-header {
@@ -317,7 +317,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 }
 .record-time {
   color: var(--hd-muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
   white-space: nowrap;
 }
 .record-meta {
@@ -337,7 +337,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
 .record-action {
   margin-top: 4px;
   color: var(--hd-muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 .action-label {
   font-weight: 600;
@@ -352,7 +352,7 @@ const stageColor = (stage) => ({ '商机立项': 'info', '合同执行': '', '�
   justify-content: space-between;
   margin-top: 4px;
   color: var(--hd-muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 .record-owner {
   font-weight: 500;

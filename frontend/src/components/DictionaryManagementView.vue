@@ -57,7 +57,7 @@ function onSave() {
   <section class="page-section sys-page">
     <el-card shadow="never" class="panel-card sys-page-card" v-loading="dictionariesLoading">
       <template #header>
-        <div class="sys-page-head">
+        <div class="page-head sys-page-head">
           <div>
             <h2>字典维护</h2>
             <p>统一管理业务下拉选项；先选类型，再维护该类型下的字典项</p>

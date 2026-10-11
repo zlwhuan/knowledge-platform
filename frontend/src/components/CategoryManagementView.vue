@@ -41,7 +41,7 @@ function onReset() {
   <section class="page-section sys-page">
     <el-card shadow="never" class="panel-card sys-page-card">
       <template #header>
-        <div class="sys-page-head">
+        <div class="page-head sys-page-head">
           <div>
             <h2>分类配置</h2>
             <p>维护知识库分类层级、编码与排序</p>

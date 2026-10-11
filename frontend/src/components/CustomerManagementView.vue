@@ -102,8 +102,8 @@ function followupStatus(dateText) {
   <section class="page-section crm-page">
     <el-card shadow="never" class="panel-card crm-page-card">
       <template #header>
-        <div class="panel-head-row crm-page-head">
-          <div class="crm-page-head-text">
+        <div class="page-head panel-head-row crm-page-head">
+          <div class="page-head-text crm-page-head-text">
             <h3>客户管理（CRM）</h3>
             <p>客户档案 · 联系人 · 跟进 · 健康度</p>
           </div>
@@ -358,12 +358,12 @@ function followupStatus(dateText) {
 
 .crm-page-head-text h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-md);
 }
 
 .crm-page-head-text p {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-muted);
 }
 
@@ -377,7 +377,7 @@ function followupStatus(dateText) {
 }
 
 .crm-filter-grid .el-form-item__label {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-muted);
 }
 
@@ -393,7 +393,7 @@ function followupStatus(dateText) {
 .crm-row-actions .el-button {
   margin: 0 !important;
   padding: 0 3px !important;
-  font-size: 12px !important;
+  font-size: var(--fs-small) !important;
   min-width: auto !important;
 }
 
@@ -407,14 +407,14 @@ function followupStatus(dateText) {
 }
 
 .crm-page-total {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-muted);
   white-space: nowrap;
 }
 
 .crm-side-title {
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--t-strong);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -424,7 +424,7 @@ function followupStatus(dateText) {
 
 .crm-side-count {
   margin-left: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-muted);
 }
 
@@ -433,7 +433,7 @@ function followupStatus(dateText) {
   display: grid;
   place-items: center;
   color: var(--t-faint);
-  font-size: 12px;
+  font-size: var(--fs-small);
   background: var(--bg-soft);
   border: 1px dashed var(--line);
   border-radius: 6px;
@@ -471,19 +471,19 @@ function followupStatus(dateText) {
 }
 
 .crm-timeline-head strong {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--t-strong);
 }
 
 .crm-timeline-meta {
   margin-top: 2px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--t-muted);
 }
 
 .crm-timeline-content {
   margin: 4px 0 2px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-strong);
   line-height: 1.4;
 }
@@ -492,6 +492,6 @@ function followupStatus(dateText) {
   display: inline-block;
   margin-left: 4px;
   color: var(--t-muted);
-  font-size: 11px;
+  font-size: var(--fs-caption);
 }
 </style>

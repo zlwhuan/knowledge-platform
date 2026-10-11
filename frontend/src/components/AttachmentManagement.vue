@@ -162,8 +162,8 @@ onMounted(() => {
 
 <template>
   <div class="attachment-management">
-    <div class="page-header">
-      <div class="header-title">
+    <div class="page-head page-header">
+      <div class="page-head-text header-title">
         <h2>附件管理</h2>
         <p>管理所有知识条目中的附件文件</p>
       </div>
@@ -173,7 +173,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="filter-bar">
+    <div class="page-toolbar filter-bar">
       <el-input
         v-model="filters.keyword"
         placeholder="搜索文件名或资料标题..."
@@ -320,7 +320,7 @@ onMounted(() => {
 
 .file-icon {
   color: var(--hd-muted);
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 
 .file-info {
@@ -329,12 +329,12 @@ onMounted(() => {
 }
 
 .file-name {
-  font-size: 14px;
+  font-size: var(--fs-body);
   color: var(--hd-ink);
 }
 
 .file-ext {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--hd-muted);
 }
 

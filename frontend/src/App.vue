@@ -1149,7 +1149,6 @@ onUnmounted(() => {
       class="cms-delete-dialog"
     >
       <div class="cms-delete-dialog-body">
-        <div class="cms-delete-dialog-icon" :class="{ danger: confirmDialog.danger }">!</div>
         <div class="cms-delete-dialog-copy">
           <h3>{{ confirmDialog.title }}</h3>
           <p>{{ confirmDialog.message }}</p>

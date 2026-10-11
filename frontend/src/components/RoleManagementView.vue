@@ -77,7 +77,7 @@ function enabledCount(config) {
   <section class="page-section sys-page">
     <el-card shadow="never" class="panel-card sys-page-card" v-loading="rolePermissionsLoading">
       <template #header>
-        <div class="sys-page-head">
+        <div class="page-head sys-page-head">
           <div>
             <h2>角色管理</h2>
             <p>按业务角色配置菜单与动作权限，点击「配置」弹窗修改</p>

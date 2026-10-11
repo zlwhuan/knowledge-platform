@@ -60,7 +60,7 @@ const emit = defineEmits(['submit'])
   height: 56px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 8px 18px rgba(10, 30, 60, 0.28));
+  filter: drop-shadow(0 8px 18px rgba(17, 24, 39, 0.28));
 }
 
 .login-copy h1 {

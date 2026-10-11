@@ -747,7 +747,7 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
   width: auto !important;
   max-width: none !important;
   min-width: 0 !important;
-  border: 1px solid #e4e9f2;
+  border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--bg-soft);
   overflow: hidden;
@@ -766,9 +766,9 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border-bottom: 1px solid #edf1f7;
-  background: #f6f9ff;
-  color: #24344d;
+  border-bottom: 1px solid var(--line-light);
+  background: var(--bg-soft);
+  color: var(--t-strong);
 }
 
 .project-contact-card-body {
@@ -799,8 +799,8 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
 
 .project-contact-link-header {
   padding: 8px 12px 0;
-  color: #627089;
-  font-size: 12px;
+  color: var(--t-muted);
+  font-size: var(--fs-small);
 }
 
 .project-contact-link-header.customer-header,
@@ -816,16 +816,16 @@ watch(() => Number(props.forms.projectProgressForm.progress || 0), (progress, pr
 .project-contact-empty {
   padding: 12px;
   text-align: center;
-  color: #8a97ab;
-  border: 1px dashed #d9e2ef;
+  color: var(--t-faint);
+  border: 1px dashed var(--line);
   border-radius: 8px;
-  background: #fff;
-  font-size: 12px;
+  background: var(--bg-card);
+  font-size: var(--fs-small);
 }
 
 .project-contact-link-footnote {
-  color: #8a97ab;
-  font-size: 12px;
+  color: var(--t-faint);
+  font-size: var(--fs-small);
 }
 
 @media (max-width: 1200px) {

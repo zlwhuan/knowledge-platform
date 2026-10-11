@@ -34,7 +34,7 @@ const suggestions = computed(() => [
   <section class="page-section sys-page">
     <el-card shadow="never" class="panel-card sys-page-card">
       <template #header>
-        <div class="sys-page-head">
+        <div class="page-head sys-page-head">
           <div>
             <h2>系统信息</h2>
             <p>{{ appName }} · 服务与数据概况</p>

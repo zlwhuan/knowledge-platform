@@ -13,11 +13,11 @@ const chartRef = ref(null)
 let chart = null
 
 const stageColors = {
-  '商机立项': '#909399',
-  '合同执行': '#E6A23C',
-  '实施交付': '#409EFF',
-  '验收结算': '#67C23A',
-  '售后维保': '#F56C6C',
+  '商机立项': '#8b5cf6',
+  '合同执行': '#3b82f6',
+  '实施交付': '#06b6d4',
+  '验收结算': '#10b981',
+  '售后维保': '#f59e0b',
 }
 
 const sortedProjects = computed(() => {

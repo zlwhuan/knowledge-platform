@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
           <template #default="scope">
             <el-space wrap>
               <el-tag v-for="tag in resolveTags(scope.row.tags)" :key="`${scope.row.id}-${tag}`" size="small" type="info">{{ tag }}</el-tag>
-              <span v-if="!resolveTags(scope.row.tags).length" style="color:#94a3b8;">--</span>
+              <span v-if="!resolveTags(scope.row.tags).length" style="color:var(--t-faint);">--</span>
             </el-space>
           </template>
         </el-table-column>

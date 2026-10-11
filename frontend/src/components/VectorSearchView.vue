@@ -276,14 +276,14 @@ onMounted(() => {
 }
 .vs-title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: var(--fs-body-sm);
 }
 .vs-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
 }
 .vs-section {
@@ -311,7 +311,7 @@ onMounted(() => {
   gap: 12px;
 }
 .vs-path {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
   word-break: break-all;
 }

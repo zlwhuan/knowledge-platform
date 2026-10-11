@@ -84,14 +84,14 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview'])
 }
 .detail-top-title h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--fs-lg);
   font-weight: 600;
   color: var(--el-text-color-primary);
   line-height: 1.4;
 }
 .detail-top-summary {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   line-height: 1.65;
   color: var(--el-text-color-regular);
   white-space: pre-wrap;
@@ -117,11 +117,11 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview'])
   min-width: 0;
 }
 .detail-meta-label {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
 }
 .detail-meta-value {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -131,7 +131,7 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview'])
   margin-bottom: 18px;
 }
 .detail-section-title {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   font-weight: 600;
   color: var(--el-text-color-primary);
   margin-bottom: 8px;
@@ -155,19 +155,19 @@ const emit = defineEmits(['update:modelValue', 'edit', 'open-preview'])
 }
 .detail-att-name {
   flex: 1;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .detail-att-size {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
   flex-shrink: 0;
 }
 .detail-link {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;

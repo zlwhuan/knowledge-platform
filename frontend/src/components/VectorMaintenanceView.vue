@@ -456,7 +456,7 @@ onMounted(load)
   word-break: break-word;
   max-height: 320px;
   overflow: auto;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   line-height: 1.6;
 }
 .vm-locator {

@@ -182,17 +182,17 @@ onUnmounted(() => {
   background: var(--el-fill-color-blank);
 }
 .vh-stat-card span {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
 }
 .vh-stat-card strong {
-  font-size: 18px;
+  font-size: var(--fs-lg);
   min-height: 28px;
   display: flex;
   align-items: center;
 }
 .vh-stat-card small {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
 }
 .vh-desc {

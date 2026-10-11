@@ -49,8 +49,6 @@ const globalSearchQuery = ref('')
     </div>
 
     <div class="sidebar-section sidebar-mainnav">
-      <div class="section-title">主导航</div>
-
       <button type="button" class="nav-button" :class="{ active: currentView === 'home' }" @click="emit('go-home')">
         <span class="nav-main-label">首页</span>
         <small>总览与动态</small>
@@ -77,10 +75,13 @@ const globalSearchQuery = ref('')
               'is-level-1': node.level <= 0,
               'is-level-2': node.level === 1,
               'is-level-n': node.level >= 2,
+              'has-children': hasChildren(node.id),
+              open: expandedNodes.has(node.id),
             }"
             @click="if (hasChildren(node.id)) emit('toggle-node', node.id); emit('choose-category', node.id)"
           >
             {{ node.name }}
+            <span v-if="hasChildren(node.id)" class="caret"></span>
           </button>
           <button
             type="button"
@@ -199,16 +200,16 @@ const globalSearchQuery = ref('')
   height: 30px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 4px 10px rgba(20, 63, 125, 0.16));
+  
   flex: 0 0 auto;
 }
 
 .brand-block-premium {
-  margin-bottom: 8px;
-  padding: 6px 4px 8px;
+  margin-bottom: 10px;
+  padding: 4px 6px 10px;
   gap: 8px;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--line);
 }
 
 .brand-block-premium .brand-copy {
@@ -218,9 +219,10 @@ const globalSearchQuery = ref('')
 
 .brand-block-premium h2 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 650;
-  color: #fff !important;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--t-strong) !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -228,28 +230,28 @@ const globalSearchQuery = ref('')
 
 .brand-block-premium small {
   display: block;
-  margin-top: 2px;
-  font-size: 11px;
-  color: rgba(229, 240, 255, 0.72);
+  margin-top: 1px;
+  font-size: var(--fs-caption);
+  color: var(--t-faint);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .vector-group-label {
-  font-weight: 650;
+  font-weight: 600;
   opacity: 0.95;
 }
 
 .vector-group-label.open::after {
   content: '▾';
   margin-left: 6px;
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 
 .vector-group-label:not(.open)::after {
   content: '▸';
   margin-left: 6px;
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 </style>

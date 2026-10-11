@@ -28,7 +28,7 @@ const recognition = ref(null)
 const voiceApplyingRef = ref(null)
 const voiceOnManualEdit = ref(null)
 const modelName = ref(localStorage.getItem('skill-model-name') || 'MiMo V2.6 Flash')
-const modelNameOptions = ref(['MiMo V2.6 Flash', 'MiMo V2.6 Pro', 'MiMo V2.5'])
+const modelNameOptions = ref(['MiMo V2.6 Flash', 'MiMo V2.6 Pro'])
 const skillPickerOpen = ref(false)
 const skillPickerRef = ref(null)
 const skillToggleRef = ref(null)
@@ -254,7 +254,7 @@ function openSkillCreate() {
     scopeItemIds: [],
     sortOrder: (allSkills.value.length || 0) * 10,
     enabled: true,
-    ownerUsername: skillManageTab.value === 'personal' ? currentUsername() : '',
+    ownerUsername: '',
   })
   skillCopyFrom.value = ''
   skillFormOpen.value = true
@@ -1750,33 +1750,38 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
           <el-radio-button value="personal">个人技能</el-radio-button>
         </el-radio-group>
         <div class="skill-manage-actions">
-          <el-button type="primary" size="small" @click="openSkillCreate">
-            {{ skillManageTab === 'personal' ? '新建个人技能' : '新建公共技能' }}
-          </el-button>
+          <el-button type="primary" size="small" @click="openSkillCreate">新建技能</el-button>
           <el-button size="small" @click="loadAllSkills">刷新</el-button>
         </div>
       </div>
       <el-table :data="tabSkills" v-loading="skillManageLoading" size="small" stripe class="skill-manage-table">
-        <el-table-column prop="id" label="编码" width="130" show-overflow-tooltip />
-        <el-table-column prop="name" label="名称" width="140" show-overflow-tooltip />
-        <el-table-column prop="description" label="描述" min-width="160" show-overflow-tooltip />
-        <el-table-column label="归属" width="100" align="center">
+        <el-table-column label="技能" min-width="200">
           <template #default="{ row }">
-            <el-tag v-if="row.ownerUsername" size="small" type="warning">{{ row.ownerUsername }}</el-tag>
-            <el-tag v-else size="small" type="info">公共</el-tag>
+            <div class="skill-cell-main">
+              <strong>{{ row.name }}</strong>
+              <small>{{ row.id }}</small>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="工具" width="150" show-overflow-tooltip>
+        <el-table-column prop="description" label="描述" min-width="180" show-overflow-tooltip />
+        <el-table-column label="归属" width="110" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.ownerUsername" size="small" type="warning" effect="plain">{{ row.ownerUsername }}</el-tag>
+            <el-tag v-else size="small" type="info" effect="plain">公共</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="工具" min-width="120" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="skill-tools-cell">{{ (row.tools || []).join('、') || '—' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="启用" width="64" align="center">
+        <el-table-column label="状态" width="72" align="center">
           <template #default="{ row }">
-            <el-tag size="small" :type="row.enabled ? 'success' : 'info'">{{ row.enabled ? '是' : '否' }}</el-tag>
+            <span class="skill-status-dot" :class="row.enabled ? 'is-on' : ''"></span>
+            {{ row.enabled ? '启用' : '停用' }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="130" fixed="right">
+        <el-table-column label="操作" width="120" fixed="right" align="center">
           <template #default="{ row }">
             <el-button size="small" text type="primary" @click="openSkillEdit(row)">编辑</el-button>
             <el-button size="small" text type="danger" @click="deleteSkill(row)">删除</el-button>
@@ -1792,7 +1797,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 
     <el-dialog v-model="skillFormOpen" :title="skillForm.dbId ? '编辑技能' : '新增技能'" width="760px" destroy-on-close class="skill-form-dialog">
       <el-form label-width="100px" label-position="left" class="skill-form">
-        <template v-if="!skillForm.dbId && skillManageTab === 'personal'">
+        <template v-if="!skillForm.dbId">
           <el-form-item label="复制模板">
             <el-select
               v-model="skillCopyFrom"
@@ -1948,12 +1953,12 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-head h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 .skill-head p {
   margin: 4px 0 0;
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
 }
 .skill-head-actions {
   display: flex;
@@ -1985,7 +1990,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-side-title {
   flex: 1;
-  font-size: 12px;
+  font-size: var(--fs-small);
   font-weight: 600;
   color: var(--el-text-color-secondary);
 }
@@ -2007,7 +2012,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: var(--el-color-primary-light-9);
 }
 .skill-session-title {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -2029,7 +2034,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: transparent;
   color: var(--el-text-color-secondary);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--fs-body);
   padding: 0 4px;
 }
 .skill-session-del:hover {
@@ -2060,7 +2065,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-card-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-body);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2073,13 +2078,13 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-card-desc {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
   line-height: 1.5;
 }
 .skill-empty {
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   padding: 20px 0;
   text-align: center;
 }
@@ -2101,23 +2106,24 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   color: var(--el-text-color-secondary);
 }
 .skill-welcome-title {
-  font-size: 16px;
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--el-text-color-primary);
   margin: 0 0 6px;
 }
 .skill-welcome-desc {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
 }
 .skill-welcome-hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 .skill-msg {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  align-items: flex-start;
 }
 .skill-msg.is-user {
   flex-direction: row-reverse;
@@ -2134,14 +2140,29 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   border: 0;
 }
 .skill-msg-bubble {
-  max-width: 82%;
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: var(--el-fill-color-light);
+  max-width: 86%;
+  border-radius: 14px;
+  padding: 8px 12px;
+  background: transparent;
   white-space: pre-wrap;
   word-break: break-word;
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--fs-body-sm);
+  line-height: 1.6;
+  color: var(--t-body);
+}
+.skill-msg.is-user .skill-msg-bubble {
+  background: var(--bg-soft);
+  border: 1px solid var(--line-light);
+  border-radius: 14px 14px 4px 14px;
+  padding: 7px 12px;
+  font-size: var(--fs-body-sm);
+  line-height: 1.55;
+  color: var(--t-strong);
+  max-width: 78%;
+}
+.skill-msg.is-bot .skill-msg-bubble {
+  padding: 2px 2px 4px;
+  max-width: 92%;
 }
 .skill-msg-bubble.is-attach {
   padding: 6px;
@@ -2165,7 +2186,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   border-color: var(--el-color-primary);
 }
 .skill-att-card-icon {
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 .skill-att-card-body {
   display: flex;
@@ -2174,19 +2195,19 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   min-width: 0;
 }
 .skill-att-card-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .skill-att-card-meta {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
 }
 .skill-form-hint {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
   line-height: 1.5;
   margin-top: 2px;
@@ -2208,11 +2229,37 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 .skill-manage-empty {
   padding: 24px 0;
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
 }
 .skill-tools-cell {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
+}
+.skill-cell-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.skill-cell-main strong {
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
+  color: var(--t-strong);
+}
+.skill-cell-main small {
+  font-size: var(--fs-caption);
+  color: var(--t-faint);
+}
+.skill-status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.skill-status-dot.is-on {
+  background: var(--sem-success);
 }
 .skill-form-row {
   display: flex;
@@ -2227,24 +2274,50 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-tool-opt-desc {
   margin-left: 10px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
 }
-.skill-msg.is-user .skill-msg-bubble {
-  background: var(--el-color-primary-light-8);
-}
+
 .skill-msg-bubble.is-error {
   background: var(--el-color-danger-light-9);
   color: var(--el-color-danger);
 }
 .skill-msg-status {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
   margin-bottom: 6px;
 }
 .skill-msg-text {
   white-space: pre-wrap;
   word-break: break-word;
+}
+.skill-msg-text.markdown-body {
+  font-size: var(--fs-body-sm);
+  line-height: 1.65;
+}
+.skill-msg-text.markdown-body p {
+  margin: 0 0 8px;
+}
+.skill-msg-text.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+.skill-msg-text.markdown-body h1,
+.skill-msg-text.markdown-body h2,
+.skill-msg-text.markdown-body h3 {
+  margin: 12px 0 6px;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.skill-msg-text.markdown-body ul,
+.skill-msg-text.markdown-body ol {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+.skill-msg-text.markdown-body pre {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: var(--fs-small);
 }
 .skill-process {
   margin-bottom: 8px;
@@ -2261,7 +2334,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   border: none;
   background: var(--el-fill-color-light);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
 }
 .skill-process-toggle:hover {
@@ -2283,7 +2356,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 .skill-process-row {
   display: flex;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   line-height: 1.6;
   color: var(--el-text-color-secondary);
 }
@@ -2327,7 +2400,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   border-top: 1px dashed var(--el-border-color);
 }
 .skill-sources-title {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
   margin-bottom: 6px;
 }
@@ -2337,7 +2410,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   gap: 6px 12px;
 }
 .skill-source-item {
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 .skill-source-link {
   display: inline-flex;
@@ -2398,9 +2471,9 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--el-fill-color);
   border: 1px solid var(--el-border-color-lighter);
 }
@@ -2415,7 +2488,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   min-height: 72px;
   max-height: 50vh;
   resize: none;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: none;
@@ -2427,7 +2500,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-msg-thinking {
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
 }
 .skill-toolbar {
   display: flex;
@@ -2447,9 +2520,9 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   height: 32px;
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-fill-color-blank);
-  border-radius: 16px;
+  border-radius: 14px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--el-text-color-regular);
 }
 .skill-tool-btn:hover {
@@ -2486,7 +2559,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   color: var(--el-text-color-regular);
   border-radius: 14px;
   padding: 3px 12px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -2498,7 +2571,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   border-color: var(--el-color-primary);
   background: var(--el-color-primary);
   color: #fff;
-  font-weight: 600;
+  font-weight: 500;
 }
 .skill-float-wrap {
   position: absolute;
@@ -2513,7 +2586,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: var(--el-bg-color-overlay);
   border: 1px solid var(--el-border-color-light);
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.12);
   padding: 12px 14px;
   margin-bottom: 4px;
 }
@@ -2521,7 +2594,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
   margin-bottom: 10px;
 }
@@ -2534,7 +2607,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: transparent;
   color: var(--el-color-primary);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 .skill-picker-grid {
   display: grid;
@@ -2558,8 +2631,8 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: var(--el-color-primary-light-9);
 }
 .skill-picker-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
   color: var(--el-text-color-primary);
   display: flex;
   align-items: center;
@@ -2570,7 +2643,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-picker-desc {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
   line-height: 1.45;
   display: -webkit-box;
@@ -2582,7 +2655,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   grid-column: 1 / -1;
   text-align: center;
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: var(--fs-small);
   padding: 12px;
 }
 .skill-slash-wrap {
@@ -2610,15 +2683,15 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: var(--el-fill-color-blank);
 }
 .skill-pending-name {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--fs-small);
+  font-weight: 500;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .skill-pending-msg {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
   margin-top: 2px;
   overflow: hidden;
@@ -2633,7 +2706,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: transparent;
   cursor: pointer;
   color: var(--el-text-color-secondary);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1;
   padding: 0 2px;
 }
@@ -2681,13 +2754,13 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: var(--el-color-primary-light-9);
 }
 .skill-slash-cmd {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
   color: var(--el-text-color-primary);
   flex-shrink: 0;
 }
 .skill-slash-desc {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2715,9 +2788,9 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--el-color-primary-light-9);
   border: 1px solid var(--el-color-primary-light-7);
   color: var(--el-color-primary);
@@ -2727,7 +2800,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   background: transparent;
   cursor: pointer;
   color: var(--el-color-primary);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   line-height: 1;
 }
 .skill-skill-btn {
@@ -2737,7 +2810,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   gap: 4px;
 }
 .skill-skill-clear {
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1;
   opacity: 0.75;
   margin-left: 2px;
@@ -2746,7 +2819,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   opacity: 1;
 }
 .skill-tool-hint {
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
 }
 .skill-clip-btn {
@@ -2763,7 +2836,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--el-text-color-secondary);
 }
 .skill-model-btn {
@@ -2814,7 +2887,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-detail-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 .skill-detail-body {
   flex: 1;
@@ -2824,7 +2897,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-detail-item-title {
   margin: 0 0 8px;
-  font-size: 16px;
+  font-size: var(--fs-md);
   line-height: 1.4;
 }
 .skill-detail-title-row {
@@ -2836,7 +2909,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-detail-title-row h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-md);
   line-height: 1.4;
 }
 .skill-detail-summary {
@@ -2846,7 +2919,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   color: var(--el-text-color-regular);
   background: var(--el-fill-color-light);
   margin-bottom: 10px;
@@ -2871,11 +2944,11 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--el-color-primary-light-8);
   color: var(--el-color-primary);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--fs-caption);
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2906,8 +2979,8 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--fs-caption);
+  font-weight: 600;
   letter-spacing: 0.2px;
   background: var(--el-color-info-light-9);
   color: var(--el-color-info);
@@ -2932,8 +3005,8 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   min-width: 0;
 }
 .skill-detail-att-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--fs-body-sm);
+  font-weight: 500;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -2941,7 +3014,7 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
 }
 .skill-detail-att-meta {
   margin-top: 2px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--el-text-color-secondary);
 }
 .skill-detail-att-actions {
@@ -2954,24 +3027,24 @@ const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/api$
   padding: 4px 6px;
 }
 .skill-detail-markdown {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   line-height: 1.7;
   word-break: break-word;
 }
 .skill-detail-section-title {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   font-weight: 600;
   margin: 12px 0 6px;
 }
 .skill-detail-content {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--el-text-color-regular);
 }
 .skill-detail-att {
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   margin-bottom: 4px;
 }
 .skill-detail-att a {

@@ -210,18 +210,23 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="assessment-management">
-    <div class="page-header">
-      <div class="header-title">
-        <h2>考核记录管理</h2>
-        <p>管理人员考核结果，包括模拟售前、本地测试等</p>
-      </div>
-      <div class="header-stats">
-        <el-statistic title="考核记录总数" :value="total" />
-      </div>
-    </div>
+  <section class="page-section sys-page">
+    <el-card shadow="never" class="panel-card sys-page-card">
+      <template #header>
+        <div class="page-head sys-page-head">
+          <div class="page-head-text">
+            <h2>考核记录管理</h2>
+            <p>管理人员考核结果，包括模拟售前、本地测试等</p>
+          </div>
+          <div class="page-head-actions">
+            <span class="page-stat-chip">{{ total }} 条记录</span>
+            <el-button type="primary" @click="openCreateDialog">新建</el-button>
+          </div>
+        </div>
+      </template>
 
-    <div class="filter-bar">
+      <div class="sys-page-body">
+        <div class="page-toolbar filter-bar">
       <el-input
         v-model="filters.keyword"
         placeholder="搜索考核主题..."
@@ -263,17 +268,15 @@ onMounted(() => {
         搜索
       </el-button>
       <el-button @click="handleReset">重置</el-button>
-      <el-button type="primary" style="margin-left: auto" @click="openCreateDialog">
-        新建考核记录
-      </el-button>
-    </div>
+      </div>
 
     <el-table
-      :data="records"
-      v-loading="loading"
-      stripe
-      style="width: 100%"
-    >
+          :data="records"
+          v-loading="loading"
+          stripe
+          style="width: 100%"
+          class="sys-table"
+        >
       <el-table-column prop="title" label="考核主题" min-width="200" show-overflow-tooltip />
       <el-table-column prop="assessmentType" label="考核类型" width="110" align="center">
         <template #default="{ row }">
@@ -318,7 +321,7 @@ onMounted(() => {
       </el-table-column>
     </el-table>
     <el-empty v-if="!loading && !records.length" description="暂无考核记录" />
-    <div class="pagination-wrapper">
+    <div class="page-foot pagination-wrapper">
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
@@ -329,6 +332,9 @@ onMounted(() => {
         @size-change="handleSizeChange"
       />
     </div>
+
+      </div>
+      </el-card>
 
     <!-- 表单对话框 -->
     <el-dialog
@@ -404,16 +410,8 @@ onMounted(() => {
         </el-button>
       </template>
     </el-dialog>
-  </div>
+  </section>
 </template>
 
-<style scoped>
-.assessment-management {
-  /* 壳层由全局 token 提供 */
-}
 
-.header-stats > div {
-  min-width: 72px;
-}
-</style>
 

@@ -7,7 +7,7 @@ const props = defineProps({
 
 const chartHeight = 240
 const padding = { top: 24, right: 24, bottom: 40, left: 44 }
-const seriesColors = ['#2563eb', '#16a34a', '#dc2626', '#9333ea', '#ea580c', '#0f766e']
+const seriesColors = ['#3b82f6', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899', '#10b981', '#f97316', '#6366f1']
 
 // viewBox 宽度跟随容器像素宽，保证与显示尺寸 1:1，不纵向拉伸
 const svgBoxRef = ref(null)
@@ -269,7 +269,7 @@ const chartData = computed(() => {
                 :y="chartHeight - 14"
                 text-anchor="middle"
                 font-size="12"
-                fill="#6b7c93"
+                fill="var(--t-muted)"
               >{{ tick.label }}</text>
             </g>
           </svg>
@@ -319,7 +319,7 @@ const chartData = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-muted);
 }
 

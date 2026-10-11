@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
       <template #header>
         <div class="card-header-block" style="display:flex;justify-content:space-between;align-items:center;">
           <h3>待办工作</h3>
-          <span style="font-size: 12px; color: #5f6f84;">共 {{ projectProgressTodos.length }} 项</span>
+          <span style="font-size: var(--fs-small); color: var(--t-muted);">共 {{ projectProgressTodos.length }} 项</span>
         </div>
       </template>
 
@@ -219,8 +219,8 @@ onBeforeUnmount(() => {
 .side-card-title {
   min-width: 0;
   color: var(--t-strong);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--fs-body-sm);
+  font-weight: 600;
   line-height: 1.35;
   word-break: break-word;
 }
@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
 .side-card-sub {
   min-width: 0;
   color: var(--t-muted);
-  font-size: 12px;
+  font-size: var(--fs-small);
 }
 
 .side-card-actions {
@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
 
 .side-card-meta {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-faint);
   line-height: 1.35;
   word-break: break-all;
@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
 
 .side-card-body {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--fs-small);
   color: var(--t-strong);
   line-height: 1.45;
   word-break: break-word;

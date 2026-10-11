@@ -20,7 +20,7 @@ const previewCards = computed(() => [
   <section class="page-section sys-page">
     <el-card shadow="never" class="panel-card sys-page-card">
       <template #header>
-        <div class="sys-page-head">
+        <div class="page-head sys-page-head">
           <div>
             <h2>预览配置</h2>
             <p>文档预览策略与当前环境能力</p>
